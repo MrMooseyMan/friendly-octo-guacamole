@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wild-Dot Crawler v2.1</title>
+    <title>Wild-Dot Crawler v2.2</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -35,6 +35,7 @@
             gap: 6px; /* Tighter gap */
             user-select: none;
             touch-action: none;
+            position: relative;
         }
         
         /* 'Rune' is the new 'dot' */
@@ -43,7 +44,7 @@
             aspect-ratio: 1 / 1;
             border-radius: 0.5rem; /* rounded-lg */
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             background-color: #334155; /* bg-slate-700 */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0,0,0,0.1);
             padding: 15%; /* Padding for the SVG icon */
@@ -51,23 +52,29 @@
         }
         
         .rune.selected {
-            transform: scale(1.1);
+            transform: scale(1.15);
             opacity: 1;
             background-color: #475569; /* bg-slate-600 */
-            box-shadow: 0 0 15px 5px var(--glow-color, #fff);
+            box-shadow: 0 0 20px 8px var(--glow-color, #fff);
             z-index: 10;
         }
 
-        /* Connector line visual effect */
-        .connector {
+        .rune.chain-start {
+            animation: pulse-glow 0.5s ease-in-out infinite alternate;
+        }
+
+        /* SVG connector lines overlay */
+        .connector-overlay {
             position: absolute;
-            background-color: var(--glow-color, #fff);
-            height: 4px;
-            transform-origin: left center;
-            z-index: 5;
+            inset: 0;
             pointer-events: none;
-            border-radius: 2px;
-            opacity: 0.8;
+            z-index: 5;
+        }
+
+        .connector-line {
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 0 4px var(--line-color, #fff));
         }
         
         .rune svg {
@@ -113,9 +120,30 @@
             50% { opacity: 0.8; filter: brightness(0.9); }
         }
 
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 15px 5px var(--glow-color, #fff); }
+            to { box-shadow: 0 0 25px 10px var(--glow-color, #fff); }
+        }
+
         @keyframes float-up {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(-30px); opacity: 0; }
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-40px) scale(1.2); opacity: 0; }
+        }
+
+        @keyframes pop-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes combo-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        @keyframes poison-drip {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
         
         .animate-fall {
@@ -130,6 +158,14 @@
             animation: pulse-bright 1.5s infinite ease-in-out;
         }
 
+        .animate-pop-in {
+            animation: pop-in 0.3s ease-out forwards;
+        }
+
+        .animate-combo-pulse {
+            animation: combo-pulse 0.3s ease-in-out;
+        }
+
         .floating-text {
             position: absolute;
             font-weight: bold;
@@ -138,6 +174,51 @@
             pointer-events: none;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
             z-index: 50;
+        }
+
+        .floating-text.large {
+            font-size: 2rem;
+            font-family: 'Lora', serif;
+        }
+
+        /* Poison status indicator */
+        .status-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .status-poison {
+            background-color: rgba(167, 139, 250, 0.3);
+            color: #a78bfa;
+            animation: poison-drip 1s infinite;
+        }
+
+        .status-poison::before {
+            content: "☠";
+        }
+
+        /* Chain count badge */
+        .chain-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 15;
         }
 
         /* --- UI Elements --- */
@@ -160,6 +241,23 @@
         .hp-bar-special { background-color: #0ea5e9; } /* sky-500 */
         .hp-bar-shield { background-color: #f59e0b; } /* amber-500 */
 
+        /* Combo meter styling */
+        .combo-active {
+            opacity: 1 !important;
+            transform: scale(1);
+            transition: all 0.2s ease;
+        }
+
+        .combo-high {
+            color: #f59e0b !important;
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+
+        .combo-super {
+            color: #f43f5e !important;
+            text-shadow: 0 0 15px rgba(244, 63, 94, 0.5);
+        }
+
         /* --- Portrait --- */
         .portrait-container {
             width: 80px;
@@ -170,6 +268,12 @@
             padding: 4px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .portrait-container.poisoned {
+            border-color: #a78bfa;
+            box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
         }
         
         .portrait-container svg {
@@ -267,8 +371,14 @@
 
         <!-- === GAME BOARD === -->
         <div id="game-board-container" class="flex-grow bg-slate-800 rounded-2xl shadow-xl p-3 border border-slate-700 relative flex flex-col justify-center">
-            <div id="game-board" class="game-board mx-auto w-full aspect-square max-w-[400px]" style="--grid-size: 6;">
-                <!-- Runes will be generated here by JS -->
+            <div id="game-board-wrapper" class="relative mx-auto w-full aspect-square max-w-[400px]">
+                <div id="game-board" class="game-board w-full h-full" style="--grid-size: 6;">
+                    <!-- Runes will be generated here by JS -->
+                </div>
+                <!-- SVG overlay for connector lines -->
+                <svg id="connector-svg" class="connector-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polyline id="connector-line" class="connector-line" fill="none" stroke-width="0.8" points="" />
+                </svg>
             </div>
             <!-- Floating damage text container -->
             <div id="floating-text-container" class="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl"></div>
@@ -330,6 +440,9 @@
 
             // --- DOM Elements ---
             const boardElement = document.getElementById('game-board');
+            const boardWrapper = document.getElementById('game-board-wrapper');
+            const connectorSvg = document.getElementById('connector-svg');
+            const connectorLine = document.getElementById('connector-line');
             const turnStatusText = document.getElementById('turn-status-text');
             const comboText = document.getElementById('combo-text');
             const comboValueText = document.getElementById('combo-value');
@@ -358,6 +471,16 @@
             const startOverlay = document.getElementById('start-overlay');
             const startButton = document.getElementById('start-button');
             const floatingTextContainer = document.getElementById('floating-text-container');
+
+            // Color to line stroke mapping
+            const COLOR_STROKES = {
+                red: '#f43f5e',
+                green: '#10b981',
+                blue: '#0ea5e9',
+                yellow: '#f59e0b',
+                purple: '#a78bfa',
+                white: '#f1f5f9'
+            };
 
             // --- SVG Icons & Portraits ---
             const ICONS = {
@@ -396,16 +519,62 @@
             
             // Create synths but don't connect them until interaction
             let boopSynth, connectSynth, hitSynth, healSynth, squareSynth, powerupSynth;
+            let poisonSynth, comboSynth, clearSynth, levelUpSynth;
 
             function initAudio() {
                 if (audioReady) return;
                 
-                boopSynth = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
-                connectSynth = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
-                hitSynth = new Tone.NoiseSynth({ noise: { type: "white" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
-                healSynth = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.1, decay: 0.2, sustain: 0, release: 0.1 } }).toDestination();
-                squareSynth = new Tone.Synth({ oscillator: { type: "sawtooth" }, envelope: { attack: 0.05, decay: 0.3, sustain: 0.1, release: 0.2 } }).toDestination();
-                powerupSynth = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.1 } }).toDestination();
+                // Base synths
+                boopSynth = new Tone.Synth({ 
+                    oscillator: { type: "sine" }, 
+                    envelope: { attack: 0.005, decay: 0.08, sustain: 0, release: 0.05 } 
+                }).toDestination();
+                
+                connectSynth = new Tone.Synth({ 
+                    oscillator: { type: "triangle" }, 
+                    envelope: { attack: 0.01, decay: 0.12, sustain: 0, release: 0.08 } 
+                }).toDestination();
+                
+                hitSynth = new Tone.NoiseSynth({ 
+                    noise: { type: "white" }, 
+                    envelope: { attack: 0.005, decay: 0.08, sustain: 0, release: 0.05 } 
+                }).toDestination();
+                
+                healSynth = new Tone.Synth({ 
+                    oscillator: { type: "triangle" }, 
+                    envelope: { attack: 0.08, decay: 0.2, sustain: 0.1, release: 0.15 } 
+                }).toDestination();
+                
+                squareSynth = new Tone.Synth({ 
+                    oscillator: { type: "sawtooth" }, 
+                    envelope: { attack: 0.03, decay: 0.2, sustain: 0.1, release: 0.15 } 
+                }).toDestination();
+                
+                powerupSynth = new Tone.Synth({ 
+                    oscillator: { type: "sine" }, 
+                    envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.15 } 
+                }).toDestination();
+                
+                // New synths for enhanced audio
+                poisonSynth = new Tone.Synth({ 
+                    oscillator: { type: "fmsine" }, 
+                    envelope: { attack: 0.02, decay: 0.3, sustain: 0, release: 0.2 } 
+                }).toDestination();
+                
+                comboSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 }
+                }).toDestination();
+                
+                clearSynth = new Tone.Synth({ 
+                    oscillator: { type: "sine" }, 
+                    envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.1 } 
+                }).toDestination();
+                
+                levelUpSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.05, decay: 0.3, sustain: 0.2, release: 0.3 }
+                }).toDestination();
                 
                 Tone.start();
                 audioReady = true;
@@ -420,26 +589,69 @@
                             boopSynth.triggerAttackRelease("C5", "32n");
                             break;
                         case 'connect':
-                            const notes = ["C5", "E5", "G5", "C6", "E6", "G6", "B6", "C7"];
-                            const note = notes[Math.min(value, notes.length - 1)];
-                            connectSynth.triggerAttackRelease(note, "16n");
+                            // Rising arpeggio based on chain length
+                            const notes = ["C5", "D5", "E5", "G5", "A5", "C6", "D6", "E6", "G6", "C7"];
+                            const noteIdx = Math.min(value, notes.length - 1);
+                            connectSynth.triggerAttackRelease(notes[noteIdx], "16n");
+                            break;
+                        case 'deselect':
+                            boopSynth.triggerAttackRelease("A4", "32n");
                             break;
                         case 'attack':
                             hitSynth.triggerAttackRelease("16n");
                             break;
                         case 'heal':
-                            healSynth.triggerAttackRelease("C4", "8n");
+                            healSynth.triggerAttackRelease("E4", "8n");
+                            setTimeout(() => healSynth.triggerAttackRelease("G4", "8n"), 80);
                             break;
                         case 'shield':
-                            squareSynth.triggerAttackRelease("A3", "8n");
+                            squareSynth.triggerAttackRelease("D3", "8n");
+                            setTimeout(() => squareSynth.triggerAttackRelease("A3", "16n"), 50);
+                            break;
+                        case 'poison':
+                            poisonSynth.triggerAttackRelease("D#3", "4n");
                             break;
                         case 'special':
-                             powerupSynth.triggerAttackRelease("D5", "4n");
+                            powerupSynth.triggerAttackRelease("C5", "8n");
+                            setTimeout(() => powerupSynth.triggerAttackRelease("E5", "8n"), 100);
+                            setTimeout(() => powerupSynth.triggerAttackRelease("G5", "8n"), 200);
+                            break;
+                        case 'surge':
+                            // Wild surge power attack
+                            powerupSynth.triggerAttackRelease("G4", "8n");
+                            setTimeout(() => powerupSynth.triggerAttackRelease("C5", "8n"), 80);
+                            setTimeout(() => powerupSynth.triggerAttackRelease("E5", "8n"), 160);
+                            setTimeout(() => hitSynth.triggerAttackRelease("8n"), 250);
+                            break;
+                        case 'combo':
+                            // Chord based on combo multiplier
+                            const comboLevel = Math.min(value, 3);
+                            if (comboLevel >= 2) {
+                                comboSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
+                            }
+                            break;
+                        case 'clear':
+                            // Tiles clearing cascade
+                            const clearNote = ["C4", "E4", "G4", "C5"][Math.min(value, 3)];
+                            clearSynth.triggerAttackRelease(clearNote, "16n");
                             break;
                         case 'win':
-                             powerupSynth.triggerAttackRelease("C5", "4n", "+0");
-                             powerupSynth.triggerAttackRelease("E5", "4n", "+0.2");
-                             powerupSynth.triggerAttackRelease("G5", "2n", "+0.4");
+                            powerupSynth.triggerAttackRelease("C5", "4n", "+0");
+                            powerupSynth.triggerAttackRelease("E5", "4n", "+0.15");
+                            powerupSynth.triggerAttackRelease("G5", "4n", "+0.30");
+                            powerupSynth.triggerAttackRelease("C6", "2n", "+0.45");
+                            break;
+                        case 'levelup':
+                            levelUpSynth.triggerAttackRelease(["C4", "E4", "G4"], "4n", "+0");
+                            levelUpSynth.triggerAttackRelease(["D4", "F#4", "A4"], "4n", "+0.3");
+                            levelUpSynth.triggerAttackRelease(["E4", "G4", "B4", "D5"], "2n", "+0.6");
+                            break;
+                        case 'damage':
+                            // Player taking damage
+                            hitSynth.triggerAttackRelease("8n");
+                            break;
+                        case 'block':
+                            squareSynth.triggerAttackRelease("G3", "16n");
                             break;
                     }
                 } catch (e) {
@@ -465,6 +677,8 @@
                 },
                 enemy: null, // Current enemy object
                 turn: { movesLeft: 3, totalMoves: 3 },
+                combo: { count: 0, multiplier: 1.0, turnMoves: 0 }, // Track combos within turn
+                poison: { active: false, damage: 0, turns: 0 }, // Enemy poison status
                 gameActive: false,
                 level: 1
             };
@@ -501,8 +715,14 @@
                     level: index + 1
                 };
                 
-                // Reset player turn
+                // Reset player turn and states
                 state.turn.movesLeft = state.turn.totalMoves;
+                state.combo = { count: 0, multiplier: 1.0, turnMoves: 0 };
+                state.poison = { active: false, damage: 0, turns: 0 };
+                
+                // Reset UI
+                comboText.classList.remove('combo-active', 'combo-high', 'combo-super');
+                updatePoisonStatus();
             }
 
             function resetGrid() {
@@ -536,8 +756,20 @@
                         rune.innerHTML = ICONS[color] || '';
                         
                         // Check if selected
-                        const isSelected = state.selectedIndices.some(p => p.r === r && p.c === c);
-                        if (isSelected) rune.classList.add('selected');
+                        const selectedIdx = state.selectedIndices.findIndex(p => p.r === r && p.c === c);
+                        if (selectedIdx !== -1) {
+                            rune.classList.add('selected');
+                            if (selectedIdx === 0) {
+                                rune.classList.add('chain-start');
+                            }
+                            // Add chain length badge on last selected
+                            if (selectedIdx === state.selectedIndices.length - 1 && state.selectedIndices.length >= 3) {
+                                const badge = document.createElement('div');
+                                badge.className = 'chain-badge';
+                                badge.textContent = state.selectedIndices.length;
+                                rune.appendChild(badge);
+                            }
+                        }
 
                         // Event Listeners for dragging
                         rune.addEventListener('pointerdown', handleInputStart);
@@ -546,6 +778,34 @@
                         boardElement.appendChild(rune);
                     }
                 }
+                
+                // Update connector lines
+                updateConnectorLines();
+            }
+            
+            function updateConnectorLines() {
+                if (state.selectedIndices.length < 2) {
+                    connectorLine.setAttribute('points', '');
+                    connectorLine.style.stroke = 'transparent';
+                    return;
+                }
+                
+                // Get the color for the line
+                const firstSel = state.selectedIndices[0];
+                const color = state.grid[firstSel.r][firstSel.c];
+                const strokeColor = COLOR_STROKES[color] || '#fff';
+                
+                // Calculate points as percentages of the board
+                const cellSize = 100 / GRID_SIZE;
+                const points = state.selectedIndices.map(({r, c}) => {
+                    const x = (c + 0.5) * cellSize;
+                    const y = (r + 0.5) * cellSize;
+                    return `${x},${y}`;
+                }).join(' ');
+                
+                connectorLine.setAttribute('points', points);
+                connectorLine.style.stroke = strokeColor;
+                connectorLine.style.setProperty('--line-color', strokeColor);
             }
 
             // --- Interaction ---
@@ -584,7 +844,7 @@
                     // Backtracking: if we move to the previous tile, unselect the current last
                     if (alreadySelectedIdx === state.selectedIndices.length - 2) {
                         state.selectedIndices.pop();
-                        playSound('select'); // simple pop sound
+                        playSound('deselect');
                         renderBoard();
                     }
                     return;
@@ -592,7 +852,7 @@
 
                 if (isAdjacent && isSameColor) {
                     state.selectedIndices.push({r, c});
-                    playSound('connect', state.selectedIndices.length - 2);
+                    playSound('connect', state.selectedIndices.length - 1);
                     renderBoard();
                 }
             }
@@ -615,11 +875,29 @@
                 const color = state.grid[state.selectedIndices[0].r][state.selectedIndices[0].c];
                 const count = state.selectedIndices.length;
                 
+                // Update combo
+                state.combo.turnMoves++;
+                state.combo.count++;
+                
+                // Calculate combo multiplier: 1.0 base, +0.25 per additional move this turn
+                const comboBonus = Math.max(0, (state.combo.turnMoves - 1) * 0.25);
+                state.combo.multiplier = 1.0 + comboBonus;
+                
+                // Show combo indicator if > 1
+                if (state.combo.turnMoves > 1) {
+                    updateComboDisplay();
+                    playSound('combo', state.combo.turnMoves);
+                }
+                
                 // 1. Apply Effects
                 const baseValue = count; // Basic linear scaling
-                const multiplier = count >= 5 ? 1.5 : 1.0;
+                const lengthBonus = count >= 5 ? 1.5 : (count >= 4 ? 1.2 : 1.0);
+                const finalValue = baseValue * lengthBonus * state.combo.multiplier;
                 
-                applyEffect(color, baseValue * multiplier);
+                applyEffect(color, finalValue);
+                
+                // Play clear sound
+                playSound('clear', Math.min(count - 3, 3));
                 
                 // 2. Reduce moves
                 state.turn.movesLeft--;
@@ -629,6 +907,9 @@
                 state.selectedIndices.forEach(({r, c}) => {
                     state.grid[r][c] = null;
                 });
+                
+                // Clear connector line
+                connectorLine.setAttribute('points', '');
                 
                 state.selectedIndices = [];
                 renderBoard(); // Shows gaps
@@ -662,6 +943,24 @@
                     await enemyTurn();
                 }
             }
+            
+            function updateComboDisplay() {
+                const mult = state.combo.multiplier.toFixed(1);
+                comboValueText.textContent = `x${mult}`;
+                comboText.classList.add('combo-active');
+                comboText.classList.add('animate-combo-pulse');
+                
+                // Color based on combo level
+                comboText.classList.remove('combo-high', 'combo-super');
+                if (state.combo.turnMoves >= 3) {
+                    comboText.classList.add('combo-super');
+                } else if (state.combo.turnMoves >= 2) {
+                    comboText.classList.add('combo-high');
+                }
+                
+                // Remove animation class after animation
+                setTimeout(() => comboText.classList.remove('animate-combo-pulse'), 300);
+            }
 
             function applyEffect(color, value) {
                 const p = state.player;
@@ -682,41 +981,51 @@
                         animateDamage(enemyPortraitContainer);
                         break;
                     case 'green': // Heal
-                        const heal = value * 2;
+                        const heal = Math.floor(value * 1.5);
+                        const actualHeal = Math.min(heal, p.maxHp - p.hp);
                         p.hp = Math.min(p.maxHp, p.hp + heal);
                         playSound('heal');
-                        text = `+${heal} HP`;
+                        text = `+${actualHeal} HP`;
                         type = 'heal';
                         break;
                     case 'yellow': // Shield
-                        const shield = value * 2;
+                        const shield = Math.floor(value * 1.5);
                         p.shield += shield;
                         playSound('shield');
                         text = `+${shield} Shield`;
                         type = 'shield';
                         break;
                     case 'blue': // Special
-                        const charge = value * 2;
-                        p.special = Math.min(p.maxSpecial, p.special + charge);
+                        const charge = Math.floor(value * 1.5);
+                        p.special = Math.min(p.maxSpecial * 2, p.special + charge); // Can overcharge slightly
                         playSound('special');
                         text = `+${charge} Energy`;
                         type = 'special';
                         break;
-                    case 'purple': // Poison (Direct dmg for now, maybe DoT later)
-                        const poison = Math.floor(value * 1.5);
-                        e.hp = Math.max(0, e.hp - poison);
-                        playSound('attack');
-                        text = `-${poison} (P)`;
+                    case 'purple': // Poison (DoT effect)
+                        const poisonDmg = Math.floor(value * 0.8);
+                        const poisonDoT = Math.max(1, Math.floor(value * 0.5));
+                        e.hp = Math.max(0, e.hp - poisonDmg);
+                        playSound('poison');
+                        text = `-${poisonDmg}`;
                         type = 'poison';
                         animateDamage(enemyPortraitContainer);
+                        
+                        // Apply poison DoT effect
+                        state.poison.active = true;
+                        state.poison.damage += poisonDoT;
+                        state.poison.turns = 3;
+                        updatePoisonStatus();
                         break;
                     case 'white': // Powerup (All stats small boost)
-                        p.shield += value;
-                        p.special += value;
-                        e.hp = Math.max(0, e.hp - value);
+                        const buff = Math.floor(value * 0.8);
+                        p.shield += buff;
+                        p.special += buff;
+                        e.hp = Math.max(0, e.hp - buff);
                         playSound('special');
-                        text = "Buff!";
+                        text = `✨ All +${buff}`;
                         type = 'special';
+                        animateDamage(enemyPortraitContainer);
                         break;
                 }
                 
@@ -724,16 +1033,48 @@
                 updateUI();
                 
                 // Check Wild Surge
-                const cost = 10 - p.upgrades.specialCost;
+                const cost = Math.max(3, 10 - p.upgrades.specialCost);
                 if (p.special >= cost) {
-                     // Auto trigger special? Or manual? 
-                     // Let's make it auto-trigger a strong attack for now to keep it simple
+                     // Auto trigger special - big attack
                      p.special -= cost;
-                     const blast = 10 + (p.level * 2);
+                     const blast = 10 + (p.level * 2) + p.upgrades.damage;
                      e.hp = Math.max(0, e.hp - blast);
-                     setTimeout(() => showFloatingText("WILD SURGE!", "special"), 500);
-                     animateDamage(enemyPortraitContainer);
+                     playSound('surge');
+                     setTimeout(() => {
+                         showFloatingText(`WILD SURGE! -${blast}`, "special", true);
+                         animateDamage(enemyPortraitContainer);
+                     }, 300);
                 }
+            }
+            
+            function updatePoisonStatus() {
+                if (state.poison.active && state.poison.turns > 0) {
+                    enemyStatusText.innerHTML = `<span class="status-icon status-poison">${state.poison.damage}/turn (${state.poison.turns})</span>`;
+                    enemyPortraitContainer.classList.add('poisoned');
+                } else {
+                    enemyStatusText.innerHTML = '';
+                    enemyPortraitContainer.classList.remove('poisoned');
+                }
+            }
+            
+            function applyPoisonTick() {
+                if (!state.poison.active || state.poison.turns <= 0) return;
+                
+                const dmg = state.poison.damage;
+                state.enemy.hp = Math.max(0, state.enemy.hp - dmg);
+                state.poison.turns--;
+                
+                playSound('poison');
+                showFloatingText(`-${dmg} ☠`, 'poison');
+                animateDamage(enemyPortraitContainer);
+                
+                if (state.poison.turns <= 0) {
+                    state.poison.active = false;
+                    state.poison.damage = 0;
+                }
+                
+                updatePoisonStatus();
+                updateUI();
             }
 
             async function enemyTurn() {
@@ -741,29 +1082,47 @@
                 turnStatusText.innerText = "Enemy Turn...";
                 turnStatusText.className = "text-xl font-bold text-rose-400 animate-pulse";
                 
-                await new Promise(r => setTimeout(r, 1000));
+                // Reset combo at end of player turn
+                state.combo.turnMoves = 0;
+                state.combo.multiplier = 1.0;
+                comboText.classList.remove('combo-active', 'combo-high', 'combo-super');
+                
+                await new Promise(r => setTimeout(r, 600));
+                
+                // Apply poison damage first
+                if (state.poison.active && state.poison.turns > 0) {
+                    applyPoisonTick();
+                    await new Promise(r => setTimeout(r, 500));
+                    
+                    // Check if enemy died from poison
+                    if (state.enemy.hp <= 0) {
+                        handleWin();
+                        return;
+                    }
+                }
+                
+                await new Promise(r => setTimeout(r, 400));
                 
                 // Enemy Attack
                 let dmg = state.enemy.attack;
                 // Shield logic
                 if (state.player.shield > 0) {
-                    if (state.player.shield >= dmg) {
-                        state.player.shield -= dmg;
-                        dmg = 0;
-                    } else {
-                        dmg -= state.player.shield;
-                        state.player.shield = 0;
+                    const blocked = Math.min(state.player.shield, dmg);
+                    state.player.shield -= blocked;
+                    dmg -= blocked;
+                    
+                    if (blocked > 0) {
+                        playSound('block');
+                        showFloatingText(`Blocked ${blocked}!`, 'shield');
+                        await new Promise(r => setTimeout(r, 300));
                     }
                 }
                 
                 if (dmg > 0) {
                     state.player.hp = Math.max(0, state.player.hp - dmg);
-                    playSound('attack');
+                    playSound('damage');
                     animateDamage(playerPortraitContainer);
                     showFloatingText(`-${dmg} HP`, 'damage');
-                } else {
-                    playSound('shield');
-                    showFloatingText("Blocked!", 'shield');
                 }
                 
                 updateUI();
@@ -782,14 +1141,20 @@
                 state.gameActive = false;
                 state.player.xp += state.enemy.xp;
                 
+                // Reset poison status
+                state.poison = { active: false, damage: 0, turns: 0 };
+                updatePoisonStatus();
+                
                 if (state.player.xp >= state.player.nextLevelXp) {
                     // Level Up
                     setTimeout(() => {
+                        playSound('levelup');
                         upgradeModal.classList.add('visible');
                     }, 1000);
                 } else {
                     modalTitle.innerText = "Victory!";
-                    modalText.innerText = `You defeated ${state.enemy.name}!`;
+                    modalTitle.className = "text-3xl font-fantasy font-bold mb-4 text-emerald-400";
+                    modalText.innerText = `You defeated ${state.enemy.name}!\n+${state.enemy.xp} XP`;
                     modalButton.innerText = "Next Battle";
                     modalButton.onclick = nextLevel;
                     setTimeout(() => modal.classList.add('visible'), 500);
@@ -876,21 +1241,24 @@
                 setTimeout(() => element.classList.remove('animate-shake'), 500);
             }
 
-            function showFloatingText(text, type) {
+            function showFloatingText(text, type, large = false) {
                 const el = document.createElement('div');
                 el.className = 'floating-text';
+                if (large) el.classList.add('large');
                 el.innerText = text;
                 
                 // Position randomly near center
-                const x = 50 + (Math.random() * 40 - 20);
-                const y = 40 + (Math.random() * 20 - 10);
+                const x = 50 + (Math.random() * 30 - 15);
+                const y = large ? 45 : (40 + (Math.random() * 20 - 10));
                 el.style.left = `${x}%`;
                 el.style.top = `${y}%`;
+                el.style.transform = 'translateX(-50%)';
                 
                 if (type === 'damage') el.style.color = '#f43f5e'; // red
                 else if (type === 'heal') el.style.color = '#10b981'; // green
                 else if (type === 'shield') el.style.color = '#f59e0b'; // amber
                 else if (type === 'special') el.style.color = '#0ea5e9'; // blue
+                else if (type === 'poison') el.style.color = '#a78bfa'; // purple
                 else el.style.color = '#fff';
                 
                 floatingTextContainer.appendChild(el);
