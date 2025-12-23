@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoodlePlay - Turn Kids' Drawings Into Games!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <span class="logo-icon">🎨</span>
+                <span class="logo-text">DoodlePlay</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#create">Create</a></li>
+                <li><a href="#gallery">Gallery</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+            </ul>
+            <a href="#create" class="nav-cta">Start Creating</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">✨ Magic for Little Artists</div>
+            <h1>Turn Your Child's Drawings Into <span class="gradient-text">Playable Games!</span></h1>
+            <p class="hero-subtitle">Upload any drawing, describe the game idea, and watch as we transform your child's imagination into an interactive adventure they can play and share.</p>
+            <div class="hero-cta">
+                <a href="#create" class="btn btn-primary btn-large">
+                    <span>🚀</span> Create Your First Game
+                </a>
+                <a href="#demo" class="btn btn-secondary btn-large">
+                    <span>▶️</span> Watch Demo
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">10,000+</span>
+                    <span class="stat-label">Games Created</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">50,000+</span>
+                    <span class="stat-label">Happy Kids</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">4.9★</span>
+                    <span class="stat-label">Parent Rating</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="floating-drawings">
+                <div class="drawing drawing-1">🦖</div>
+                <div class="drawing drawing-2">🚀</div>
+                <div class="drawing drawing-3">🏰</div>
+                <div class="drawing drawing-4">🦄</div>
+                <div class="drawing drawing-5">🌈</div>
+            </div>
+            <div class="demo-game-container">
+                <div class="game-frame">
+                    <div class="game-header">
+                        <span class="game-title">🎮 Dragon Adventure</span>
+                        <span class="game-badge">LIVE DEMO</span>
+                    </div>
+                    <canvas id="demo-game" width="400" height="300"></canvas>
+                    <div class="game-controls-hint">Use ← → arrows to move, SPACE to jump!</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Simple & Fun</span>
+                <h2>How It Works</h2>
+                <p>Three easy steps to bring drawings to life</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">📸</div>
+                    <h3>Upload Drawing</h3>
+                    <p>Take a photo or scan your child's artwork. Dragons, spaceships, princesses - anything goes!</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">💭</div>
+                    <h3>Describe the Game</h3>
+                    <p>Tell us what kind of game you want. "Make my dragon fly and collect stars!"</p>
+                </div>
+                <div class="step-arrow">→</div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">🎮</div>
+                    <h3>Play & Share</h3>
+                    <p>In minutes, get a unique game starring your child's creation. Share with family!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Create Section -->
+    <section id="create" class="create-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Let's Create!</span>
+                <h2>Create Your Game</h2>
+                <p>Upload a drawing and tell us about your game idea</p>
+            </div>
+            
+            <div class="create-container">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-content">
+                        <div class="upload-icon">🖼️</div>
+                        <h3>Drop your drawing here</h3>
+                        <p>or click to browse files</p>
+                        <span class="upload-formats">PNG, JPG, JPEG up to 10MB</span>
+                    </div>
+                    <input type="file" id="file-input" accept="image/*" hidden>
+                </div>
+                
+                <div class="preview-area hidden" id="preview-area">
+                    <img id="preview-image" src="" alt="Your drawing">
+                    <button class="remove-image" id="remove-image">✕</button>
+                </div>
+                
+                <div class="game-options">
+                    <div class="form-group">
+                        <label for="game-name">Game Name</label>
+                        <input type="text" id="game-name" placeholder="e.g., Super Dragon Adventure">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="game-type">Game Type</label>
+                        <div class="game-type-grid">
+                            <button class="game-type-btn active" data-type="platformer">
+                                <span>🏃</span>
+                                <span>Platformer</span>
+                            </button>
+                            <button class="game-type-btn" data-type="flying">
+                                <span>🦅</span>
+                                <span>Flying</span>
+                            </button>
+                            <button class="game-type-btn" data-type="racing">
+                                <span>🏎️</span>
+                                <span>Racing</span>
+                            </button>
+                            <button class="game-type-btn" data-type="catching">
+                                <span>⭐</span>
+                                <span>Catching</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="game-description">Describe Your Game Idea</label>
+                        <textarea id="game-description" rows="4" placeholder="Tell us about the game! e.g., 'My dragon should fly through clouds and collect golden stars. When it gets 10 stars, it wins!'"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Difficulty Level</label>
+                        <div class="difficulty-slider">
+                            <input type="range" id="difficulty" min="1" max="3" value="2">
+                            <div class="difficulty-labels">
+                                <span>Easy</span>
+                                <span>Medium</span>
+                                <span>Hard</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-large btn-create" id="create-game-btn">
+                        <span>✨</span> Generate My Game!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Game Preview Section -->
+    <section id="game-preview" class="game-preview-section hidden">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">🎉 Your Game is Ready!</span>
+                <h2 id="generated-game-title">Dragon Adventure</h2>
+            </div>
+            
+            <div class="game-preview-container">
+                <div class="game-preview-frame">
+                    <canvas id="user-game" width="600" height="400"></canvas>
+                </div>
+                <div class="game-preview-controls">
+                    <div class="control-hint">
+                        <span class="key">←</span><span class="key">→</span> Move
+                        <span class="key">SPACE</span> Jump/Fly
+                    </div>
+                    <div class="game-preview-actions">
+                        <button class="btn btn-secondary" id="restart-game">🔄 Restart</button>
+                        <button class="btn btn-primary" id="share-game">📤 Share Game</button>
+                        <button class="btn btn-secondary" id="download-game">💾 Download</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="gallery-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Inspiration</span>
+                <h2>Game Gallery</h2>
+                <p>See what other kids have created!</p>
+            </div>
+            
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <div class="gallery-placeholder" style="background: linear-gradient(135deg, #FF6B6B, #FF8E53);">
+                            🦖
+                        </div>
+                    </div>
+                    <div class="gallery-info">
+                        <h4>Dino Jump</h4>
+                        <p>By Emma, age 7</p>
+                        <span class="gallery-plays">🎮 2,340 plays</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <div class="gallery-placeholder" style="background: linear-gradient(135deg, #4ECDC4, #45B7D1);">
+                            🚀
+                        </div>
+                    </div>
+                    <div class="gallery-info">
+                        <h4>Space Explorer</h4>
+                        <p>By Jake, age 6</p>
+                        <span class="gallery-plays">🎮 1,892 plays</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <div class="gallery-placeholder" style="background: linear-gradient(135deg, #A855F7, #EC4899);">
+                            🦄
+                        </div>
+                    </div>
+                    <div class="gallery-info">
+                        <h4>Unicorn Rainbow Run</h4>
+                        <p>By Sophie, age 8</p>
+                        <span class="gallery-plays">🎮 3,567 plays</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <div class="gallery-placeholder" style="background: linear-gradient(135deg, #F59E0B, #EF4444);">
+                            🐉
+                        </div>
+                    </div>
+                    <div class="gallery-info">
+                        <h4>Fire Dragon Quest</h4>
+                        <p>By Max, age 9</p>
+                        <span class="gallery-plays">🎮 4,123 plays</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <div class="gallery-placeholder" style="background: linear-gradient(135deg, #10B981, #3B82F6);">
+                            🐸
+                        </div>
+                    </div>
+                    <div class="gallery-info">
+                        <h4>Froggy Adventure</h4>
+                        <p>By Lily, age 5</p>
+                        <span class="gallery-plays">🎮 1,456 plays</span>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <div class="gallery-image">
+                        <div class="gallery-placeholder" style="background: linear-gradient(135deg, #8B5CF6, #06B6D4);">
+                            🏰
+                        </div>
+                    </div>
+                    <div class="gallery-info">
+                        <h4>Castle Defender</h4>
+                        <p>By Oliver, age 10</p>
+                        <span class="gallery-plays">🎮 2,891 plays</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">❤️ Loved by Families</span>
+                <h2>What Parents Say</h2>
+            </div>
+            
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                    <p>"My daughter was SO excited to play a game with her own dragon drawing! She's been showing everyone. This is pure magic."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">👩</div>
+                        <div class="author-info">
+                            <strong>Sarah M.</strong>
+                            <span>Mom of 2</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                    <p>"Finally a screen time activity I feel good about! My kids spend time drawing AND playing. Best of both worlds."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">👨</div>
+                        <div class="author-info">
+                            <strong>Mike R.</strong>
+                            <span>Dad of 3</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                    <p>"We sent grandma the game link and she played it! My son was so proud. What a wonderful way to share creativity."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">👩</div>
+                        <div class="author-info">
+                            <strong>Jennifer L.</strong>
+                            <span>Mom of 1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Simple Pricing</span>
+                <h2>Choose Your Plan</h2>
+                <p>Start free, upgrade when you need more magic!</p>
+            </div>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Free</h3>
+                        <div class="price">
+                            <span class="amount">$0</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ 3 games per month</li>
+                        <li>✓ Basic game templates</li>
+                        <li>✓ Share via link</li>
+                        <li>✓ 7-day game storage</li>
+                    </ul>
+                    <button class="btn btn-secondary btn-block">Get Started Free</button>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <h3>Family</h3>
+                        <div class="price">
+                            <span class="amount">$9</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ Unlimited games</li>
+                        <li>✓ All game templates</li>
+                        <li>✓ Custom backgrounds</li>
+                        <li>✓ Download games</li>
+                        <li>✓ Forever storage</li>
+                        <li>✓ Priority support</li>
+                    </ul>
+                    <button class="btn btn-primary btn-block">Start 7-Day Trial</button>
+                </div>
+                
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>School</h3>
+                        <div class="price">
+                            <span class="amount">$49</span>
+                            <span class="period">/month</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✓ Up to 30 students</li>
+                        <li>✓ Teacher dashboard</li>
+                        <li>✓ Class galleries</li>
+                        <li>✓ Curriculum integration</li>
+                        <li>✓ COPPA compliant</li>
+                    </ul>
+                    <button class="btn btn-secondary btn-block">Contact Sales</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Make Magic?</h2>
+                <p>Join thousands of families turning imagination into games</p>
+                <a href="#create" class="btn btn-white btn-large">
+                    <span>🎨</span> Create Your First Game Free
+                </a>
+            </div>
+            <div class="cta-decorations">
+                <span class="cta-emoji">🌟</span>
+                <span class="cta-emoji">🎮</span>
+                <span class="cta-emoji">🖍️</span>
+                <span class="cta-emoji">✨</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <span class="logo-icon">🎨</span>
+                        <span class="logo-text">DoodlePlay</span>
+                    </a>
+                    <p>Turning imagination into interactive adventures, one drawing at a time.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Product</h4>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#gallery">Gallery</a>
+                    <a href="#pricing">Pricing</a>
+                    <a href="#">Game Templates</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <a href="#">About Us</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Careers</a>
+                    <a href="#">Press</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 DoodlePlay. Made with ❤️ for creative kids everywhere.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Share Modal -->
+    <div class="modal hidden" id="share-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="close-modal">✕</button>
+            <h3>🎉 Share Your Game!</h3>
+            <p>Copy this link to share your game with family and friends:</p>
+            <div class="share-link-container">
+                <input type="text" id="share-link" value="https://doodleplay.com/game/abc123" readonly>
+                <button class="btn btn-primary" id="copy-link">📋 Copy</button>
+            </div>
+            <div class="share-social">
+                <button class="social-btn facebook">📘 Facebook</button>
+                <button class="social-btn twitter">🐦 Twitter</button>
+                <button class="social-btn email">📧 Email</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game-engine.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
