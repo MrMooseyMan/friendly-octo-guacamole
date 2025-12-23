@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wild-Dot Crawler v2.1</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lora:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Tone.js for simple audio feedback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+
+    <style>
+        /* Use Inter for UI, Lora for fantasy text */
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: none; /* Prevent scrolling on mobile while dragging */
+            background-color: #0f172a; /* bg-slate-900 */
+        }
+        
+        .font-fantasy {
+            font-family: 'Lora', serif;
+        }
+
+        /* --- Game Board --- */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(var(--grid-size, 6), 1fr);
+            grid-template-rows: repeat(var(--grid-size, 6), 1fr);
+            gap: 6px; /* Tighter gap */
+            user-select: none;
+            touch-action: none;
+        }
+        
+        /* 'Rune' is the new 'dot' */
+        .rune {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 0.5rem; /* rounded-lg */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: #334155; /* bg-slate-700 */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15%; /* Padding for the SVG icon */
+            position: relative;
+        }
+        
+        .rune.selected {
+            transform: scale(1.1);
+            opacity: 1;
+            background-color: #475569; /* bg-slate-600 */
+            box-shadow: 0 0 15px 5px var(--glow-color, #fff);
+            z-index: 10;
+        }
+
+        /* Connector line visual effect */
+        .connector {
+            position: absolute;
+            background-color: var(--glow-color, #fff);
+            height: 4px;
+            transform-origin: left center;
+            z-index: 5;
+            pointer-events: none;
+            border-radius: 2px;
+            opacity: 0.8;
+        }
+        
+        .rune svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+            pointer-events: none;
+        }
+
+        /* --- Rune Icon Colors --- */
+        .rune-red svg { fill: #f43f5e; } /* rose-500 */
+        .rune-red { --glow-color: #f43f5e; } 
+        
+        .rune-green svg { fill: #10b981; } /* emerald-500 */
+        .rune-green { --glow-color: #10b981; }
+        
+        .rune-blue svg { fill: #0ea5e9; } /* sky-500 */
+        .rune-blue { --glow-color: #0ea5e9; }
+        
+        .rune-yellow svg { fill: #f59e0b; } /* amber-500 */
+        .rune-yellow { --glow-color: #f59e0b; }
+        
+        .rune-purple svg { fill: #a78bfa; } /* violet-400 */
+        .rune-purple { --glow-color: #a78bfa; }
+
+        .rune-white svg { fill: #f1f5f9; } /* slate-100 */
+        .rune-white { --glow-color: #f1f5f9; }
+        
+        /* --- Animations --- */
+        @keyframes fall {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes pulse-bright {
+            0%, 100% { opacity: 1; filter: brightness(1.2); }
+            50% { opacity: 0.8; filter: brightness(0.9); }
+        }
+
+        @keyframes float-up {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-30px); opacity: 0; }
+        }
+        
+        .animate-fall {
+            animation: fall 0.3s ease-out;
+        }
+        
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .animate-pulse-bright {
+            animation: pulse-bright 1.5s infinite ease-in-out;
+        }
+
+        .floating-text {
+            position: absolute;
+            font-weight: bold;
+            font-size: 1.5rem;
+            animation: float-up 1s forwards;
+            pointer-events: none;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            z-index: 50;
+        }
+
+        /* --- UI Elements --- */
+        .hp-bar-bg {
+            background-color: #374151; /* gray-700 */
+            border-radius: 9999px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .hp-bar {
+            height: 100%;
+            transition: width 0.5s ease-in-out;
+            border-radius: 9999px;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.2), rgba(255,255,255,0.0));
+        }
+        
+        .hp-bar-player { background-color: #10b981; } /* emerald-500 */
+        .hp-bar-enemy { background-color: #f43f5e; } /* rose-500 */
+        .hp-bar-special { background-color: #0ea5e9; } /* sky-500 */
+        .hp-bar-shield { background-color: #f59e0b; } /* amber-500 */
+
+        /* --- Portrait --- */
+        .portrait-container {
+            width: 80px;
+            height: 80px;
+            background-color: #1e293b; /* slate-800 */
+            border: 2px solid #334155; /* slate-700 */
+            border-radius: 0.5rem;
+            padding: 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        
+        .portrait-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- Modal --- */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-backdrop.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .modal-content {
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-backdrop.visible .modal-content {
+            transform: scale(1);
+        }
+
+    </style>
+</head>
+<body class="bg-slate-900 text-gray-200 min-h-screen p-4 overflow-hidden select-none">
+
+    <div id="game-container" class="max-w-md mx-auto flex flex-col h-[95vh]">
+        
+        <!-- === DUNGEON VIEW === -->
+        <div class="p-3 bg-slate-800 rounded-2xl shadow-xl mb-3 border border-slate-700">
+            
+            <!-- Enemy -->
+            <div id="enemy-section" class="flex items-center gap-3 mb-3">
+                <div id="enemy-portrait-container" class="portrait-container">
+                    <!-- Enemy SVG goes here -->
+                </div>
+                <div id="enemy-stats" class="flex-1 transition-all duration-300 overflow-hidden">
+                    <h2 id="enemy-name" class="text-xl font-fantasy font-bold text-rose-400 truncate">Gloom-cap</h2>
+                    <p id="enemy-level" class="text-xs text-gray-400">Lvl 1</p>
+                    <div class="hp-bar-bg h-4 w-full mt-1 relative">
+                        <div id="enemy-hp-bar" class="hp-bar hp-bar-enemy" style="width: 100%;"></div>
+                        <span id="enemy-hp-text" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md">20/20</span>
+                    </div>
+                    <div id="enemy-status" class="h-4 mt-1 text-xs text-violet-400 flex items-center"></div>
+                </div>
+            </div>
+            
+            <!-- Player -->
+            <div id="player-section" class="flex items-center gap-3">
+                <div id="player-portrait-container" class="portrait-container">
+                    <!-- Player SVG goes here -->
+                </div>
+                <div id="player-stats" class="flex-1">
+                    <div class="flex justify-between items-baseline">
+                        <h2 class="text-lg font-fantasy font-bold text-emerald-400">Warden</h2>
+                        <span id="player-level" class="text-xs text-gray-400">Lvl 1</span>
+                    </div>
+                    <!-- HP -->
+                    <div class="hp-bar-bg h-4 w-full mt-1 relative">
+                        <div id="player-hp-bar" class="hp-bar hp-bar-player" style="width: 100%;"></div>
+                        <span id="player-hp-text-overlay" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md">20/20</span>
+                    </div>
+                    <div class="flex justify-between text-xs px-1 mt-0.5">
+                        <span id="player-shield-text" class="text-amber-400 font-bold"></span>
+                    </div>
+                    <!-- Special -->
+                    <div class="hp-bar-bg h-2 w-full mt-1">
+                        <div id="player-special-bar" class="hp-bar hp-bar-special" style="width: 0%;"></div>
+                    </div>
+                    <span id="player-special-text" class="text-xs text-sky-400 block mt-0.5">Wild Surge: 0/10</span>
+                </div>
+            </div>
+            
+        </div>
+        
+        <!-- === GAME STATUS === -->
+        <div class="text-center mb-2 h-8 flex justify-between items-center px-4">
+            <h3 id="turn-status-text" class="text-lg font-bold text-amber-400">Your Turn (3)</h3>
+            <h3 id="combo-text" class="text-lg font-bold text-gray-300 opacity-0 transition-opacity">Combo: <span id="combo-value" class="text-amber-300">x1</span></h3>
+        </div>
+
+        <!-- === GAME BOARD === -->
+        <div id="game-board-container" class="flex-grow bg-slate-800 rounded-2xl shadow-xl p-3 border border-slate-700 relative flex flex-col justify-center">
+            <div id="game-board" class="game-board mx-auto w-full aspect-square max-w-[400px]" style="--grid-size: 6;">
+                <!-- Runes will be generated here by JS -->
+            </div>
+            <!-- Floating damage text container -->
+            <div id="floating-text-container" class="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl"></div>
+        </div>
+
+        <!-- Help/Start Overlay -->
+        <div id="start-overlay" class="absolute inset-0 bg-slate-900/90 z-40 flex flex-col items-center justify-center p-6 text-center">
+            <h1 class="text-4xl font-fantasy text-emerald-400 mb-4">Wild-Dot Crawler</h1>
+            <p class="mb-8 text-gray-300">Connect 3+ matching runes to fight.</p>
+            <div class="grid grid-cols-2 gap-4 text-sm text-left max-w-xs mb-8">
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-rose-500 rounded-full"></div><span>Attack Enemy</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-emerald-500 rounded-full"></div><span>Heal Self</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-sky-500 rounded-full"></div><span>Charge Special</span></div>
+                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-amber-500 rounded-full"></div><span>Gain Shield</span></div>
+            </div>
+            <button id="start-button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
+                Enter the Wild
+            </button>
+        </div>
+
+    </div>
+
+    <!-- === VICTORY MODAL === -->
+    <div id="modal" class="modal-backdrop">
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-8 max-w-sm w-full text-center border-2 border-slate-700">
+            <h2 id="modal-title" class="text-3xl font-fantasy font-bold mb-4">Victory!</h2>
+            <p id="modal-text" class="text-lg mb-6">You defeated the Gloom-cap.</p>
+            <button id="modal-button" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-200 text-lg shadow-lg w-full">
+                Next Battle
+            </button>
+        </div>
+    </div>
+    
+    <!-- === UPGRADE MODAL (Level Up) === -->
+    <div id="upgrade-modal" class="modal-backdrop">
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-amber-500">
+            <h2 class="text-3xl font-fantasy font-bold mb-2 text-amber-400">Level Up!</h2>
+            <p class="text-gray-300 mb-4">Choose a permanent upgrade:</p>
+            <div class="space-y-3">
+                <button onclick="applyUpgrade('hp')" class="upgrade-choice w-full bg-slate-700 hover:bg-emerald-900 border border-emerald-500/30 hover:border-emerald-500 text-white p-3 rounded-lg transition-all duration-200 shadow-lg group">
+                    <strong class="font-fantasy text-emerald-400 group-hover:text-emerald-300">Primal Vigor</strong>
+                    <div class="text-xs text-gray-400">+5 Max HP</div>
+                </button>
+                <button onclick="applyUpgrade('attack')" class="upgrade-choice w-full bg-slate-700 hover:bg-rose-900 border border-rose-500/30 hover:border-rose-500 text-white p-3 rounded-lg transition-all duration-200 shadow-lg group">
+                    <strong class="font-fantasy text-rose-400 group-hover:text-rose-300">Sharpened Claws</strong>
+                    <div class="text-xs text-gray-400">+1 Base Damage</div>
+                </button>
+                <button onclick="applyUpgrade('special')" class="upgrade-choice w-full bg-slate-700 hover:bg-sky-900 border border-sky-500/30 hover:border-sky-500 text-white p-3 rounded-lg transition-all duration-200 shadow-lg group">
+                    <strong class="font-fantasy text-sky-400 group-hover:text-sky-300">Wild Attunement</strong>
+                    <div class="text-xs text-gray-400">-1 Special Cost</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === GAME LOGIC SCRIPT === -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- DOM Elements ---
+            const boardElement = document.getElementById('game-board');
+            const turnStatusText = document.getElementById('turn-status-text');
+            const comboText = document.getElementById('combo-text');
+            const comboValueText = document.getElementById('combo-value');
+            
+            const playerHpBar = document.getElementById('player-hp-bar');
+            const playerHpTextOverlay = document.getElementById('player-hp-text-overlay');
+            const playerShieldText = document.getElementById('player-shield-text');
+            const playerSpecialBar = document.getElementById('player-special-bar');
+            const playerSpecialText = document.getElementById('player-special-text');
+            const playerLevelText = document.getElementById('player-level');
+            const playerPortraitContainer = document.getElementById('player-portrait-container');
+            
+            const enemyHpBar = document.getElementById('enemy-hp-bar');
+            const enemyNameText = document.getElementById('enemy-name');
+            const enemyLevelText = document.getElementById('enemy-level');
+            const enemyStatusText = document.getElementById('enemy-status');
+            const enemyPortraitContainer = document.getElementById('enemy-portrait-container');
+            const enemyHpText = document.getElementById('enemy-hp-text');
+
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalText = document.getElementById('modal-text');
+            const modalButton = document.getElementById('modal-button');
+            
+            const upgradeModal = document.getElementById('upgrade-modal');
+            const startOverlay = document.getElementById('start-overlay');
+            const startButton = document.getElementById('start-button');
+            const floatingTextContainer = document.getElementById('floating-text-container');
+
+            // --- SVG Icons & Portraits ---
+            const ICONS = {
+                // RUNES
+                red: `<svg viewBox="0 0 24 24"><path d="M19.1 1.9c-1.1-1.1-2.7-1.7-4.3-1.7-1.6 0-3.2.6-4.3 1.7L1.9 10.5c-1.1 1.1-1.7 2.7-1.7 4.3s.6 3.2 1.7 4.3l1.8 1.8c1.1 1.1 2.7 1.7 4.3 1.7s3.2-.6 4.3-1.7l8.6-8.6c1.1-1.1 1.7-2.7 1.7-4.3s-.6-3.2-1.7-4.3zM18 10.2l-8.6 8.6c-.4.4-1 .4-1.4 0l-1.8-1.8c-.4-.4-.4-1 0-1.4l8.6-8.6c.4-.4 1-.4 1.4 0l1.8 1.8c.4.4.4 1 0 1.4zM4.7 17.5l-1.8-1.8c-.8-.8-.8-2 0-2.8l8.6-8.6c.8-.8 2-.8 2.8 0l1.8 1.8c.8.8.8 2 0 2.8l-8.6 8.6c-.8.8-2 .8-2.8 0z"></path></svg>`, // Claw
+                green: `<svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z"></path><path d="M12 4c-2.1 0-4 1.3-4.8 3.2-.3.6.3 1.2.9 1.2h7.8c.6 0 1.2-.6.9-1.2C16 5.3 14.1 4 12 4z"></path><path d="M12 14c2.1 0 4-1.3 4.8-3.2.3-.6-.3-1.2-.9-1.2H8.1c-.6 0-1.2.6-.9 1.2C8 12.7 9.9 14 12 14z"></path><path d="M12 20c-2.1 0-4-1.3-4.8-3.2-.3-.6.3-1.2.9-1.2h7.8c.6 0 1.2-.6.9-1.2C16 18.7 14.1 20 12 20z"></path></svg>`, // Leaf
+                blue: `<svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm-2.8-11.2c.4-.4 1-.4 1.4 0l3.5 3.5c.4.4.4 1 0 1.4l-3.5 3.5c-.4.4-1 .4-1.4 0l-3.5-3.5c-.4-.4-.4-1 0-1.4l3.5-3.5z"></path></svg>`, // Mind
+                yellow: `<svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.2l8.2 4.1v7.4L12 19.8l-8.2-4.1V8.3L12 4.2zM4 8.3v7.4l8 4v-7.4l-8-4zM12 12.2l-8-4 8-4 8 4-8 4z"></path></svg>`, // Shield
+                purple: `<svg viewBox="0 0 24 24"><path d="M12 2c-3.3 0-6 2.7-6 6 0 3.1 2.2 5.7 5.1 6V22h1.8v-8c2.9-.3 5.1-2.9 5.1-6 0-3.3-2.7-6-6-6zm0 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path></svg>`, // Fang
+                white: `<svg viewBox="0 0 24 24"><path d="M12 2l2.6 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.4L12 2z"></path></svg>`, // Sun Shard
+
+                // PORTRAITS
+                player: `<svg viewBox="0 0 100 100" fill="#10b981"><path d="M50 10 C 30 10, 30 35, 30 35 C 30 55, 40 65, 50 80 C 60 65, 70 55, 70 35 C 70 35, 70 10, 50 10 z M 50 40 A 5 5 0 0 1 45 45 A 5 5 0 0 1 40 40 A 5 5 0 0 1 45 35 A 5 5 0 0 1 50 40 z M 60 40 A 5 5 0 0 1 55 45 A 5 5 0 0 1 50 40 A 5 5 0 0 1 55 35 A 5 5 0 0 1 60 40 z M 40 55 A 15 10 0 0 0 60 55 L 60 60 A 20 15 0 0 1 40 60 z"></path><path d="M20 90 L 30 70 L 35 75 L 25 95 z" fill-opacity="0.8"></path><path d="M80 90 L 70 70 L 65 75 L 75 95 z" fill-opacity="0.8"></path></svg>`,
+                'gloom-cap': `<svg viewBox="0 0 100 100" fill="#a78bfa"><path d="M50 30 C 20 30, 20 60, 20 60 C 20 70, 30 80, 40 80 L 60 80 C 70 80, 80 70, 80 60 C 80 60, 80 30, 50 30 z"></path><path d="M45 80 L 45 90 L 55 90 L 55 80 z" fill-opacity="0.7"></path><circle cx="35" cy="50" r="5" fill="#fde047"></circle><circle cx="50" cy="45" r="5" fill="#fde047"></circle><circle cx="65" cy="50" r="5" fill="#fde047"></circle><circle cx="30" cy="65" r="3" fill="#fde047"></circle><circle cx="70" cy="65" r="3" fill="#fde047"></circle></svg>`,
+                'briar-wolf': `<svg viewBox="0 0 100 100" fill="#f43f5e"><path d="M20 80 L 30 60 L 40 70 L 35 90 z M 30 60 L 45 50 L 50 30 L 60 40 L 75 45 L 80 60 L 60 75 L 50 85 L 40 70 z M 75 45 L 90 40 L 85 55 z M 50 30 L 45 20 L 55 20 z"></path><path d="M40 55 C 42 53, 47 53, 49 55" stroke="#f1f5f9" stroke-width="2"></path><path d="M60 58 C 62 56, 67 56, 69 58" stroke="#f1f5f9" stroke-width="2"></path></svg>`,
+                'gloom-sprite': `<svg viewBox="0 0 100 100" fill="#0ea5e9"><circle cx="50" cy="50" r="15"></circle><path d="M50 35 A 20 20 0 0 0 35 50 A 5 5 0 0 0 40 50 A 15 15 0 0 1 50 35 z" fill-opacity="0.8"></path><path d="M50 65 A 20 20 0 0 1 65 50 A 5 5 0 0 1 60 50 A 15 15 0 0 0 50 65 z" fill-opacity="0.8"></path><path d="M65 50 A 20 20 0 0 0 50 35 A 5 5 0 0 0 50 40 A 15 15 0 0 1 65 50 z" fill-opacity="0.8"></path></svg>`,
+                'shadow-stalker': `<svg viewBox="0 0 100 100" fill="#4b5563"><path d="M50 10 L 40 40 L 20 30 z M 60 40 L 80 30 L 50 10 z M 40 40 L 20 60 L 30 90 L 50 70 L 70 90 L 80 60 L 60 40 z"></path><circle cx="40" cy="50" r="5" fill="#f43f5e"></circle><circle cx="60" cy="50" r="5" fill="#f43f5e"></circle></svg>`,
+                'grove-wraith': `<svg viewBox="0 0 100 100" fill="#166534"><path d="M50 20 C 40 30, 40 40, 40 40 L 30 80 L 40 70 L 50 90 L 60 70 L 70 80 L 60 40 C 60 40, 60 30, 50 20 z"></path><circle cx="45" cy="45" r="3" fill="#fde047"></circle><circle cx="55" cy="45" r="3" fill="#fde047"></circle><path d="M40 60 C 50 50, 50 50, 60 60" stroke="#f1f5f9" stroke-width="2" fill="none"></path></svg>`,
+            };
+
+            // --- Game Constants ---
+            const GRID_SIZE = 6;
+            const MOVES_PER_TURN = 3;
+            const DOT_COLORS = ['red', 'green', 'blue', 'yellow', 'purple', 'white'];
+            const COLOR_MAP = {
+                red: { name: 'Claw', effect: 'damage' },
+                green: { name: 'Leaf', effect: 'heal' },
+                blue: { name: 'Mind', effect: 'special' },
+                yellow: { name: 'Shield', effect: 'shield' },
+                purple: { name: 'Fang', effect: 'poison' },
+                white: { name: 'Sunshard', effect: 'powerup' }
+            };
+
+            // --- Audio Synths (Tone.js) ---
+            let audioReady = false;
+            
+            // Create synths but don't connect them until interaction
+            let boopSynth, connectSynth, hitSynth, healSynth, squareSynth, powerupSynth;
+
+            function initAudio() {
+                if (audioReady) return;
+                
+                boopSynth = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                connectSynth = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                hitSynth = new Tone.NoiseSynth({ noise: { type: "white" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                healSynth = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.1, decay: 0.2, sustain: 0, release: 0.1 } }).toDestination();
+                squareSynth = new Tone.Synth({ oscillator: { type: "sawtooth" }, envelope: { attack: 0.05, decay: 0.3, sustain: 0.1, release: 0.2 } }).toDestination();
+                powerupSynth = new Tone.Synth({ oscillator: { type: "sine" }, envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.1 } }).toDestination();
+                
+                Tone.start();
+                audioReady = true;
+            }
+
+            function playSound(type, value = 0) {
+                if (!audioReady) return;
+                
+                try {
+                    switch (type) {
+                        case 'select':
+                            boopSynth.triggerAttackRelease("C5", "32n");
+                            break;
+                        case 'connect':
+                            const notes = ["C5", "E5", "G5", "C6", "E6", "G6", "B6", "C7"];
+                            const note = notes[Math.min(value, notes.length - 1)];
+                            connectSynth.triggerAttackRelease(note, "16n");
+                            break;
+                        case 'attack':
+                            hitSynth.triggerAttackRelease("16n");
+                            break;
+                        case 'heal':
+                            healSynth.triggerAttackRelease("C4", "8n");
+                            break;
+                        case 'shield':
+                            squareSynth.triggerAttackRelease("A3", "8n");
+                            break;
+                        case 'special':
+                             powerupSynth.triggerAttackRelease("D5", "4n");
+                            break;
+                        case 'win':
+                             powerupSynth.triggerAttackRelease("C5", "4n", "+0");
+                             powerupSynth.triggerAttackRelease("E5", "4n", "+0.2");
+                             powerupSynth.triggerAttackRelease("G5", "2n", "+0.4");
+                            break;
+                    }
+                } catch (e) {
+                    console.warn("Audio error:", e);
+                }
+            }
+
+            // --- Game State ---
+            let state = {
+                grid: [], // 2D array of strings (colors)
+                selectedIndices: [], // Array of {r, c}
+                isDragging: false,
+                player: { 
+                    hp: 20, 
+                    maxHp: 20, 
+                    shield: 0, 
+                    special: 0, 
+                    maxSpecial: 10, 
+                    level: 1, 
+                    xp: 0, 
+                    nextLevelXp: 10, 
+                    upgrades: { damage: 0, hp: 0, specialCost: 0 } 
+                },
+                enemy: null, // Current enemy object
+                turn: { movesLeft: 3, totalMoves: 3 },
+                gameActive: false,
+                level: 1
+            };
+
+            const ENEMIES = [
+                { type: 'gloom-cap', name: 'Gloom-cap', maxHp: 20, attack: 3, xp: 5 },
+                { type: 'briar-wolf', name: 'Briar Wolf', maxHp: 30, attack: 5, xp: 8 },
+                { type: 'gloom-sprite', name: 'Gloom Sprite', maxHp: 15, attack: 2, xp: 4 }, // Weak but annoying?
+                { type: 'shadow-stalker', name: 'Shadow Stalker', maxHp: 40, attack: 6, xp: 12 },
+                { type: 'grove-wraith', name: 'Grove Wraith', maxHp: 60, attack: 8, xp: 20 }
+            ];
+
+            // --- Game Logic ---
+
+            function startGame() {
+                initAudio();
+                startOverlay.classList.add('hidden');
+                spawnEnemy(0);
+                resetGrid();
+                updateUI();
+                state.gameActive = true;
+            }
+
+            function spawnEnemy(index) {
+                // simple progression: loop through enemies, scaling HP/Damage
+                const template = ENEMIES[index % ENEMIES.length];
+                const scaling = Math.floor(index / ENEMIES.length);
+                
+                state.enemy = {
+                    ...template,
+                    maxHp: template.maxHp + (scaling * 10),
+                    hp: template.maxHp + (scaling * 10),
+                    attack: template.attack + (scaling * 1),
+                    level: index + 1
+                };
+                
+                // Reset player turn
+                state.turn.movesLeft = state.turn.totalMoves;
+            }
+
+            function resetGrid() {
+                state.grid = [];
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    const row = [];
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        row.push(getRandomColor());
+                    }
+                    state.grid.push(row);
+                }
+                renderBoard();
+            }
+
+            function getRandomColor() {
+                return DOT_COLORS[Math.floor(Math.random() * DOT_COLORS.length)];
+            }
+
+            function renderBoard() {
+                boardElement.innerHTML = '';
+                boardElement.style.setProperty('--grid-size', GRID_SIZE);
+
+                // Create tiles
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        const color = state.grid[r][c];
+                        const rune = document.createElement('div');
+                        rune.className = `rune rune-${color}`;
+                        rune.dataset.r = r;
+                        rune.dataset.c = c;
+                        rune.innerHTML = ICONS[color] || '';
+                        
+                        // Check if selected
+                        const isSelected = state.selectedIndices.some(p => p.r === r && p.c === c);
+                        if (isSelected) rune.classList.add('selected');
+
+                        // Event Listeners for dragging
+                        rune.addEventListener('pointerdown', handleInputStart);
+                        rune.addEventListener('pointerenter', handleInputMove);
+                        
+                        boardElement.appendChild(rune);
+                    }
+                }
+            }
+
+            // --- Interaction ---
+            // We use pointer events for mouse/touch unification
+            
+            function handleInputStart(e) {
+                if (!state.gameActive || state.turn.movesLeft <= 0) return;
+                
+                const r = parseInt(e.currentTarget.dataset.r);
+                const c = parseInt(e.currentTarget.dataset.c);
+                
+                state.isDragging = true;
+                state.selectedIndices = [{r, c}];
+                playSound('select');
+                renderBoard(); // To show selection
+                
+                // Release listener globally
+                document.addEventListener('pointerup', handleInputEnd, { once: true });
+            }
+
+            function handleInputMove(e) {
+                if (!state.isDragging) return;
+                
+                const r = parseInt(e.currentTarget.dataset.r);
+                const c = parseInt(e.currentTarget.dataset.c);
+                const last = state.selectedIndices[state.selectedIndices.length - 1];
+                
+                // Check if adjacent and same color
+                const isAdjacent = Math.abs(r - last.r) <= 1 && Math.abs(c - last.c) <= 1; // Diagonals allowed
+                const isSameColor = state.grid[r][c] === state.grid[last.r][last.c];
+                
+                // Prevent backtracking (unless unselecting the last one)
+                const alreadySelectedIdx = state.selectedIndices.findIndex(p => p.r === r && p.c === c);
+                
+                if (alreadySelectedIdx !== -1) {
+                    // Backtracking: if we move to the previous tile, unselect the current last
+                    if (alreadySelectedIdx === state.selectedIndices.length - 2) {
+                        state.selectedIndices.pop();
+                        playSound('select'); // simple pop sound
+                        renderBoard();
+                    }
+                    return;
+                }
+
+                if (isAdjacent && isSameColor) {
+                    state.selectedIndices.push({r, c});
+                    playSound('connect', state.selectedIndices.length - 2);
+                    renderBoard();
+                }
+            }
+
+            function handleInputEnd() {
+                state.isDragging = false;
+                
+                if (state.selectedIndices.length >= 3) {
+                    processMove();
+                } else {
+                    // Cancel
+                    state.selectedIndices = [];
+                    renderBoard();
+                }
+            }
+
+            // --- Game Mechanics ---
+
+            async function processMove() {
+                const color = state.grid[state.selectedIndices[0].r][state.selectedIndices[0].c];
+                const count = state.selectedIndices.length;
+                
+                // 1. Apply Effects
+                const baseValue = count; // Basic linear scaling
+                const multiplier = count >= 5 ? 1.5 : 1.0;
+                
+                applyEffect(color, baseValue * multiplier);
+                
+                // 2. Reduce moves
+                state.turn.movesLeft--;
+                
+                // 3. Clear Tiles & Refill
+                // Mark as null first
+                state.selectedIndices.forEach(({r, c}) => {
+                    state.grid[r][c] = null;
+                });
+                
+                state.selectedIndices = [];
+                renderBoard(); // Shows gaps
+                
+                await new Promise(r => setTimeout(r, 200)); // Delay for visual
+                
+                // Drop logic
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    let writeIdx = GRID_SIZE - 1;
+                    for (let r = GRID_SIZE - 1; r >= 0; r--) {
+                        if (state.grid[r][c] !== null) {
+                            state.grid[writeIdx][c] = state.grid[r][c];
+                            if (writeIdx !== r) state.grid[r][c] = null;
+                            writeIdx--;
+                        }
+                    }
+                    // Fill top
+                    while (writeIdx >= 0) {
+                        state.grid[writeIdx][c] = getRandomColor();
+                        writeIdx--;
+                    }
+                }
+                
+                renderBoard(); // Refilled
+                updateUI();
+                
+                // 4. Check End Turn
+                if (state.enemy.hp <= 0) {
+                    handleWin();
+                } else if (state.turn.movesLeft <= 0) {
+                    await enemyTurn();
+                }
+            }
+
+            function applyEffect(color, value) {
+                const p = state.player;
+                const e = state.enemy;
+                let text = "";
+                let type = 'neutral';
+
+                value = Math.floor(value);
+
+                switch(color) {
+                    case 'red': // Damage
+                        const dmg = value + p.upgrades.damage;
+                        e.hp = Math.max(0, e.hp - dmg);
+                        playSound('attack');
+                        text = `-${dmg}`;
+                        type = 'damage';
+                        // Visual feedback on enemy
+                        animateDamage(enemyPortraitContainer);
+                        break;
+                    case 'green': // Heal
+                        const heal = value * 2;
+                        p.hp = Math.min(p.maxHp, p.hp + heal);
+                        playSound('heal');
+                        text = `+${heal} HP`;
+                        type = 'heal';
+                        break;
+                    case 'yellow': // Shield
+                        const shield = value * 2;
+                        p.shield += shield;
+                        playSound('shield');
+                        text = `+${shield} Shield`;
+                        type = 'shield';
+                        break;
+                    case 'blue': // Special
+                        const charge = value * 2;
+                        p.special = Math.min(p.maxSpecial, p.special + charge);
+                        playSound('special');
+                        text = `+${charge} Energy`;
+                        type = 'special';
+                        break;
+                    case 'purple': // Poison (Direct dmg for now, maybe DoT later)
+                        const poison = Math.floor(value * 1.5);
+                        e.hp = Math.max(0, e.hp - poison);
+                        playSound('attack');
+                        text = `-${poison} (P)`;
+                        type = 'poison';
+                        animateDamage(enemyPortraitContainer);
+                        break;
+                    case 'white': // Powerup (All stats small boost)
+                        p.shield += value;
+                        p.special += value;
+                        e.hp = Math.max(0, e.hp - value);
+                        playSound('special');
+                        text = "Buff!";
+                        type = 'special';
+                        break;
+                }
+                
+                showFloatingText(text, type);
+                updateUI();
+                
+                // Check Wild Surge
+                const cost = 10 - p.upgrades.specialCost;
+                if (p.special >= cost) {
+                     // Auto trigger special? Or manual? 
+                     // Let's make it auto-trigger a strong attack for now to keep it simple
+                     p.special -= cost;
+                     const blast = 10 + (p.level * 2);
+                     e.hp = Math.max(0, e.hp - blast);
+                     setTimeout(() => showFloatingText("WILD SURGE!", "special"), 500);
+                     animateDamage(enemyPortraitContainer);
+                }
+            }
+
+            async function enemyTurn() {
+                state.gameActive = false;
+                turnStatusText.innerText = "Enemy Turn...";
+                turnStatusText.className = "text-xl font-bold text-rose-400 animate-pulse";
+                
+                await new Promise(r => setTimeout(r, 1000));
+                
+                // Enemy Attack
+                let dmg = state.enemy.attack;
+                // Shield logic
+                if (state.player.shield > 0) {
+                    if (state.player.shield >= dmg) {
+                        state.player.shield -= dmg;
+                        dmg = 0;
+                    } else {
+                        dmg -= state.player.shield;
+                        state.player.shield = 0;
+                    }
+                }
+                
+                if (dmg > 0) {
+                    state.player.hp = Math.max(0, state.player.hp - dmg);
+                    playSound('attack');
+                    animateDamage(playerPortraitContainer);
+                    showFloatingText(`-${dmg} HP`, 'damage');
+                } else {
+                    playSound('shield');
+                    showFloatingText("Blocked!", 'shield');
+                }
+                
+                updateUI();
+                
+                if (state.player.hp <= 0) {
+                    handleLoss();
+                } else {
+                    state.turn.movesLeft = state.turn.totalMoves;
+                    state.gameActive = true;
+                    updateUI(); // Reset turn text
+                }
+            }
+
+            function handleWin() {
+                playSound('win');
+                state.gameActive = false;
+                state.player.xp += state.enemy.xp;
+                
+                if (state.player.xp >= state.player.nextLevelXp) {
+                    // Level Up
+                    setTimeout(() => {
+                        upgradeModal.classList.add('visible');
+                    }, 1000);
+                } else {
+                    modalTitle.innerText = "Victory!";
+                    modalText.innerText = `You defeated ${state.enemy.name}!`;
+                    modalButton.innerText = "Next Battle";
+                    modalButton.onclick = nextLevel;
+                    setTimeout(() => modal.classList.add('visible'), 500);
+                }
+            }
+
+            function handleLoss() {
+                modalTitle.innerText = "Defeat...";
+                modalText.innerText = `You fell to the ${state.enemy.name}.`;
+                modalButton.innerText = "Try Again";
+                modalButton.onclick = () => location.reload();
+                modal.classList.add('visible');
+            }
+
+            // Exposed global for modal
+            window.nextLevel = function() {
+                modal.classList.remove('visible');
+                state.level++;
+                spawnEnemy(state.level - 1);
+                state.gameActive = true;
+                updateUI();
+            };
+            
+            window.applyUpgrade = function(type) {
+                const p = state.player;
+                if (type === 'hp') {
+                    p.maxHp += 5;
+                    p.hp += 5;
+                    p.upgrades.hp += 5;
+                } else if (type === 'attack') {
+                    p.upgrades.damage += 1;
+                } else if (type === 'special') {
+                    p.upgrades.specialCost += 2;
+                }
+                
+                // Handle XP reset
+                p.xp -= p.nextLevelXp;
+                p.nextLevelXp = Math.floor(p.nextLevelXp * 1.5);
+                p.level++;
+                
+                upgradeModal.classList.remove('visible');
+                
+                // Continue to next battle
+                nextLevel();
+            };
+
+            // --- UI Updates ---
+
+            function updateUI() {
+                const p = state.player;
+                const e = state.enemy;
+                
+                // Player
+                playerHpBar.style.width = `${(p.hp / p.maxHp) * 100}%`;
+                playerHpTextOverlay.innerText = `${p.hp}/${p.maxHp}`;
+                playerShieldText.innerText = p.shield > 0 ? `(${p.shield} Shield)` : "";
+                
+                const specialCost = 10 - p.upgrades.specialCost;
+                const specialPct = Math.min(100, (p.special / specialCost) * 100);
+                playerSpecialBar.style.width = `${specialPct}%`;
+                playerSpecialText.innerText = `Wild Surge: ${p.special}/${specialCost}`;
+                playerLevelText.innerText = `Lvl ${p.level}`;
+                
+                playerPortraitContainer.innerHTML = ICONS['player'];
+
+                // Enemy
+                if (e) {
+                    enemyHpBar.style.width = `${(e.hp / e.maxHp) * 100}%`;
+                    enemyHpText.innerText = `${e.hp}/${e.maxHp}`;
+                    enemyNameText.innerText = e.name;
+                    enemyLevelText.innerText = `Lvl ${e.level}`;
+                    enemyPortraitContainer.innerHTML = ICONS[e.type] || ICONS['gloom-cap'];
+                }
+                
+                // Turn
+                if (state.gameActive) {
+                    turnStatusText.innerText = `Moves: ${state.turn.movesLeft}`;
+                    turnStatusText.className = "text-xl font-bold text-amber-400";
+                }
+            }
+
+            function animateDamage(element) {
+                element.classList.add('animate-shake');
+                setTimeout(() => element.classList.remove('animate-shake'), 500);
+            }
+
+            function showFloatingText(text, type) {
+                const el = document.createElement('div');
+                el.className = 'floating-text';
+                el.innerText = text;
+                
+                // Position randomly near center
+                const x = 50 + (Math.random() * 40 - 20);
+                const y = 40 + (Math.random() * 20 - 10);
+                el.style.left = `${x}%`;
+                el.style.top = `${y}%`;
+                
+                if (type === 'damage') el.style.color = '#f43f5e'; // red
+                else if (type === 'heal') el.style.color = '#10b981'; // green
+                else if (type === 'shield') el.style.color = '#f59e0b'; // amber
+                else if (type === 'special') el.style.color = '#0ea5e9'; // blue
+                else el.style.color = '#fff';
+                
+                floatingTextContainer.appendChild(el);
+                setTimeout(() => el.remove(), 1000);
+            }
+
+            // Init
+            startButton.addEventListener('click', startGame);
+            
+            // Prevent context menu
+            document.addEventListener('contextmenu', event => event.preventDefault());
+        });
+    </script>
+</body>
+</html>
