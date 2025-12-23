@@ -93,6 +93,46 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* HP Bar in stats */
+.hp-stat {
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 80px;
+}
+
+.hp-bar-wrap {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hp-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f43f5e, #34d399);
+  transition: width 0.3s ease-out;
+  border-radius: 7px;
+}
+
+.hp-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.floor-stat .v {
+  font-size: 16px;
+  color: var(--surge);
+}
+
 .boardWrap {
   flex: 1;
   position: relative;
@@ -115,6 +155,41 @@ canvas#game {
   object-fit: contain;
   border-radius: 8px;
   touch-action: none;
+}
+
+/* Floor Progress UI */
+.floor-progress {
+  position: absolute;
+  top: 60px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.floor-progress-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.floor-bar-bg {
+  flex: 1;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.floor-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+  transition: width 0.3s ease-out;
+  border-radius: 4px;
 }
 
 /* Surge UI */
@@ -281,6 +356,15 @@ canvas#game {
 .s-shield { background: var(--shield); }
 .s-coin { background: var(--coin); }
 .s-enemy { background: var(--enemy); }
+.s-wild { 
+  background: linear-gradient(135deg, #ff0080, #ff8000, #ffff00, #00ff00, #00ffff, #0080ff, #8000ff);
+  animation: rainbow 2s linear infinite;
+}
+
+@keyframes rainbow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
 
 .row {
   display: flex;
