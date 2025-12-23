@@ -34,6 +34,29 @@
     wild: "✨"
   };
 
+  // Monster types with names and icons for better identity
+  const MONSTERS = [
+    { name: "Slime", icon: "🟢", color: "#22c55e" },
+    { name: "Goblin", icon: "👺", color: "#84cc16" },
+    { name: "Rat", icon: "🐀", color: "#a3a3a3" },
+    { name: "Bat", icon: "🦇", color: "#6b7280" },
+    { name: "Spider", icon: "🕷️", color: "#4b5563" },
+    { name: "Ghost", icon: "👻", color: "#a78bfa" },
+    { name: "Skeleton", icon: "💀", color: "#f5f5f4" },
+    { name: "Zombie", icon: "🧟", color: "#65a30d" },
+    { name: "Imp", icon: "😈", color: "#ef4444" },
+    { name: "Shadow", icon: "👤", color: "#1f2937" },
+  ];
+
+  // Stronger monsters for higher floors
+  const ELITE_MONSTERS = [
+    { name: "Ogre", icon: "👹", color: "#b45309" },
+    { name: "Wraith", icon: "👥", color: "#7c3aed" },
+    { name: "Demon", icon: "😈", color: "#dc2626" },
+    { name: "Dragon", icon: "🐉", color: "#ea580c" },
+    { name: "Reaper", icon: "💀", color: "#0f172a" },
+  ];
+
   // Chain length bonus multipliers
   const CHAIN_BONUS = {
     4: 1.25,  // +25% for 4 tiles
@@ -90,6 +113,16 @@
     overlay: document.getElementById("overlay"),
     overlayTitle: document.getElementById("overlayTitle"),
     overlayMsg: document.getElementById("overlayMessage"),
+    // New UX elements
+    turnBanner: document.getElementById("turnBanner"),
+    turnText: document.getElementById("turnText"),
+    combatLog: document.getElementById("combatLogContent"),
+    monsterInfo: document.getElementById("monsterInfo"),
+    monsterIcon: document.getElementById("monsterIcon"),
+    monsterName: document.getElementById("monsterName"),
+    monsterHp: document.getElementById("monsterHp"),
+    threatIndicator: document.getElementById("threatIndicator"),
+    threatCount: document.getElementById("threatCount"),
   };
 
   // --- Audio ---
@@ -159,12 +192,24 @@
     // Update floor progress
     const floorPercent = (state.enemiesKilledOnFloor / state.enemiesNeededForFloor) * 100;
     ui.floorBar.style.width = `${Math.min(floorPercent, 100)}%`;
-    ui.floorProgressText.textContent = `${state.enemiesKilledOnFloor}/${state.enemiesNeededForFloor} 💀`;
+    ui.floorProgressText.textContent = `${state.enemiesKilledOnFloor}/${state.enemiesNeededForFloor} slain`;
     
     // Update surge bar
     const surgePercent = (state.surge / state.maxSurge) * 100;
     ui.surgeBar.style.width = `${surgePercent}%`;
     ui.surgeBtn.disabled = state.surge < state.maxSurge;
+    
+    // Update threat indicator (count of monsters on board = damage per turn)
+    const monsterCount = state.grid.flat().filter(t => t && t.type === TYPES.ENEMY).length;
+    ui.threatCount.textContent = monsterCount;
+    
+    // Add danger class if threat is high relative to HP/shield
+    const totalDefense = state.hp + state.shield;
+    if (monsterCount >= totalDefense * 0.5) {
+      ui.threatIndicator.classList.add("danger");
+    } else {
+      ui.threatIndicator.classList.remove("danger");
+    }
   }
 
   function showOverlay(type, message = "") {
@@ -238,6 +283,9 @@
     
     generateGrid(true);
     updateUI();
+    clearCombatLog();
+    hideMonsterInfo();
+    addCombatLog("⚔️ Your adventure begins!", "info");
     showOverlay(null);
   }
 
@@ -254,7 +302,7 @@
     }
   }
 
-  function spawnTile(x, y) {
+  function spawnTile(x, y, announce = false) {
     const r = Math.random();
     let type = TYPES.SWORD;
     
@@ -269,16 +317,31 @@
     // Enemy HP scales with floor
     const hp = type === TYPES.ENEMY ? Math.floor(1 + state.floor * 0.3 + Math.random() * 2) : 0;
     const val = type === TYPES.ENEMY ? Math.ceil(hp / 2) : 1;
+    
+    // Give enemies a monster identity
+    const monsterData = type === TYPES.ENEMY ? getRandomMonster() : null;
 
-    return {
+    const tile = {
       type,
       x, 
       y, 
       val,
       hp,
       maxHp: hp,
+      monsterData,
       id: Math.random().toString(36)
     };
+    
+    // Announce new monster spawns (but not on initial grid generation)
+    if (type === TYPES.ENEMY && announce && state.turn > 0) {
+      const ts = getTileSize();
+      setTimeout(() => {
+        addCombatLog(`${monsterData.icon} ${monsterData.name} appears!`, "spawn");
+        spawnFloatingText((x + 0.5) * ts, (y + 0.5) * ts, `${monsterData.icon}`, monsterData.color);
+      }, 100);
+    }
+    
+    return tile;
   }
 
   function getTile(x, y) {
@@ -375,8 +438,14 @@
     playSound("connect");
     updatePreview();
     
+    const tile = getTile(x, y);
     const ts = getTileSize();
-    spawnParticles((x + 0.5) * ts, (y + 0.5) * ts, COLORS[getTile(x, y).type], 3);
+    spawnParticles((x + 0.5) * ts, (y + 0.5) * ts, COLORS[tile.type], 3);
+    
+    // Show monster info if selecting an enemy
+    if (tile.type === TYPES.ENEMY) {
+      showMonsterInfo(tile);
+    }
   }
 
   function onPointerUp(e) {
@@ -388,6 +457,7 @@
     } else {
       state.selection = [];
       ui.preview.classList.add("hidden");
+      hideMonsterInfo();
     }
   }
 
@@ -422,6 +492,7 @@
     if (sel.length === 0) return { valid: false };
     
     let swords = 0, potions = 0, shields = 0, coins = 0, enemies = 0, wilds = 0, enemyHpTotal = 0;
+    const enemyTiles = [];
 
     // Count tile types
     for (const p of sel) {
@@ -434,6 +505,7 @@
       else if (t.type === TYPES.ENEMY) {
         enemies++;
         enemyHpTotal += t.hp;
+        enemyTiles.push(t);
       }
     }
 
@@ -454,38 +526,45 @@
     if (enemies > 0 || swords > 0) {
       // Wilds count as swords in combat
       const totalDmg = Math.floor((swords + wilds) * chainBonus);
+      
+      // Get monster names for display
+      const monsterNames = enemyTiles.slice(0, 2).map(e => 
+        e.monsterData ? e.monsterData.name : "Monster"
+      );
+      const targetText = monsterNames.join(", ") + (enemies > 2 ? ` +${enemies - 2}` : "");
+      
       if (totalDmg >= enemyHpTotal && enemies > 0) {
-        msg = `⚔️ ${totalDmg} dmg - Kill ${enemies}!${bonusText}`;
+        msg = `⚔️ ${totalDmg} dmg → SLAY ${targetText}!${bonusText}`;
       } else if (enemies > 0) {
-        msg = `⚔️ ${totalDmg} dmg${bonusText}`;
+        msg = `⚔️ ${totalDmg} dmg → ${targetText}${bonusText}`;
       } else {
-        msg = `⚔️ ${totalDmg} dmg (no target)`;
+        msg = `⚔️ ${totalDmg} dmg (need a target!)`;
       }
       return { valid: enemies > 0 || swords >= 3, msg, type: "attack", dmg: totalDmg, wilds };
     }
     
     if (potions > 0) {
       const heal = Math.floor((potions + wilds + Math.floor(len / 3)) * chainBonus);
-      msg = `❤️ +${heal} HP${bonusText}`;
+      msg = `❤️ Heal +${heal} HP${bonusText}`;
       return { valid: true, msg, type: "heal", value: heal };
     }
     
     if (shields > 0) {
       const armor = Math.floor((shields + wilds + Math.floor(len / 3)) * chainBonus);
-      msg = `🛡️ +${armor} Shield${bonusText}`;
+      msg = `🛡️ Block +${armor} dmg${bonusText}`;
       return { valid: true, msg, type: "shield", value: armor };
     }
     
     if (coins > 0) {
       const val = Math.floor(((coins + wilds) * 2 + Math.floor(len / 2)) * chainBonus);
-      msg = `💰 +${val} pts${bonusText}`;
+      msg = `💰 Collect +${val} gold${bonusText}`;
       return { valid: true, msg, type: "coin", value: val };
     }
 
     // Pure wild chain - treat as coins
     if (wilds > 0) {
       const val = Math.floor((wilds * 3) * chainBonus);
-      msg = `✨ +${val} pts (Wild!)${bonusText}`;
+      msg = `✨ Wild bonus +${val} gold!${bonusText}`;
       return { valid: true, msg, type: "coin", value: val };
     }
 
@@ -503,6 +582,66 @@
     });
   }
 
+  // --- Combat Log ---
+  function addCombatLog(message, type = "info") {
+    const entry = document.createElement("div");
+    entry.className = `combat-log-entry ${type}`;
+    entry.textContent = message;
+    
+    // Keep only last 5 entries
+    while (ui.combatLog.children.length >= 5) {
+      ui.combatLog.removeChild(ui.combatLog.firstChild);
+    }
+    
+    ui.combatLog.appendChild(entry);
+    
+    // Auto-scroll to bottom
+    ui.combatLog.parentElement.scrollTop = ui.combatLog.parentElement.scrollHeight;
+  }
+
+  function clearCombatLog() {
+    ui.combatLog.innerHTML = "";
+  }
+
+  // --- Turn Banner ---
+  function showTurnBanner(text, isEnemyTurn = false) {
+    ui.turnText.textContent = text;
+    ui.turnBanner.classList.remove("hidden", "enemy-turn");
+    if (isEnemyTurn) {
+      ui.turnBanner.classList.add("enemy-turn");
+    }
+    
+    // Auto-hide after animation
+    setTimeout(() => {
+      ui.turnBanner.classList.add("hidden");
+    }, 800);
+  }
+
+  // --- Monster Info Panel ---
+  function showMonsterInfo(monster) {
+    if (!monster) {
+      ui.monsterInfo.classList.add("hidden");
+      return;
+    }
+    
+    ui.monsterIcon.textContent = monster.monsterData.icon;
+    ui.monsterName.textContent = monster.monsterData.name;
+    ui.monsterHp.textContent = `HP: ${monster.hp}/${monster.maxHp} • ATK: 1`;
+    ui.monsterInfo.classList.remove("hidden");
+  }
+
+  function hideMonsterInfo() {
+    ui.monsterInfo.classList.add("hidden");
+  }
+
+  // Get a random monster type based on floor
+  function getRandomMonster() {
+    if (state.floor >= 5 && Math.random() < 0.3) {
+      return ELITE_MONSTERS[Math.floor(Math.random() * ELITE_MONSTERS.length)];
+    }
+    return MONSTERS[Math.floor(Math.random() * MONSTERS.length)];
+  }
+
   // --- Execution ---
 
   function executeMove() {
@@ -515,10 +654,12 @@
 
     ui.preview.classList.add("hidden");
     state.animating = true;
+    hideMonsterInfo();
     
     const ts = getTileSize();
     const chainLen = state.selection.length;
     let killed = 0;
+    const killedMonsters = [];
 
     if (analysis.type === "attack") {
       let remainingDmg = analysis.dmg;
@@ -528,14 +669,22 @@
         .filter(t => t.type === TYPES.ENEMY);
       
       for (const e of enemiesInChain) {
+        const monsterName = e.monsterData ? e.monsterData.name : "Monster";
+        const monsterIcon = e.monsterData ? e.monsterData.icon : "💀";
+        
         if (remainingDmg >= e.hp) {
-          remainingDmg -= e.hp;
+          const overkill = remainingDmg - e.hp;
+          remainingDmg = overkill;
           e.dead = true;
           killed++;
-          spawnFloatingText((e.x + 0.5) * ts, (e.y + 0.5) * ts, "SLAIN!", "#ff6b6b");
+          killedMonsters.push(e.monsterData);
+          spawnFloatingText((e.x + 0.5) * ts, (e.y + 0.5) * ts, `${monsterIcon} SLAIN!`, "#22d3ee");
+          addCombatLog(`⚔️ ${monsterName} slain!`, "kill");
         } else {
+          const dmgDealt = remainingDmg;
           e.hp -= remainingDmg;
-          spawnFloatingText((e.x + 0.5) * ts, (e.y + 0.5) * ts, `-${remainingDmg}`, "#ffaa00");
+          spawnFloatingText((e.x + 0.5) * ts, (e.y + 0.5) * ts, `-${dmgDealt}`, "#ffaa00");
+          addCombatLog(`⚔️ Hit ${monsterName} for ${dmgDealt} dmg!`, "attack");
           remainingDmg = 0;
         }
       }
@@ -554,11 +703,13 @@
       playSound("heal");
       if (healed > 0) {
         spawnFloatingText(GRID_W * ts / 2, GRID_H * ts / 2, `+${healed} HP`, COLORS.potion);
+        addCombatLog(`❤️ Healed ${healed} HP!`, "heal");
       }
     } else if (analysis.type === "shield") {
       state.shield += analysis.value;
       playSound("shield");
       spawnFloatingText(GRID_W * ts / 2, GRID_H * ts / 2, `+${analysis.value} 🛡️`, COLORS.shield);
+      addCombatLog(`🛡️ Gained ${analysis.value} shield!`, "shield");
     } else if (analysis.type === "coin") {
       state.score += analysis.value;
       state.surge = Math.min(state.surge + analysis.value * 2, state.maxSurge);
@@ -597,11 +748,12 @@
       state.grid[p.x][p.y] = null;
     }
     
+    // Refill grid with new tiles (announce monster spawns)
     for (let x = 0; x < GRID_W; x++) {
       const col = state.grid[x];
       const newCol = col.filter(t => t !== null);
       while (newCol.length < GRID_H) {
-        newCol.unshift(spawnTile(x, 0));
+        newCol.unshift(spawnTile(x, 0, true)); // announce = true for new spawns
       }
       newCol.forEach((t, i) => { t.y = i; t.x = x; });
       state.grid[x] = newCol;
@@ -612,7 +764,19 @@
     let totalEnemyDmg = allEnemies.length;
     
     if (totalEnemyDmg > 0) {
-      setTimeout(() => takeDamage(totalEnemyDmg), 250);
+      // Show enemy turn banner
+      setTimeout(() => {
+        showTurnBanner(`${totalEnemyDmg} MONSTERS ATTACK!`, true);
+        
+        // Build attack message
+        const monsterNames = allEnemies.slice(0, 3).map(e => 
+          e.monsterData ? e.monsterData.icon : "💀"
+        ).join("");
+        const extras = allEnemies.length > 3 ? ` +${allEnemies.length - 3}` : "";
+        addCombatLog(`${monsterNames}${extras} attack for ${totalEnemyDmg} dmg!`, "enemy-attack");
+      }, 200);
+      
+      setTimeout(() => takeDamage(totalEnemyDmg), 450);
     }
 
     state.selection = [];
@@ -636,7 +800,19 @@
     state.shake = 15;
     
     const ts = getTileSize();
+    
+    // Show floor advancement banner
+    showTurnBanner(`🏰 FLOOR ${state.floor}!`, false);
+    
     spawnFloatingText(GRID_W * ts / 2, GRID_H * ts / 2, `FLOOR ${state.floor}!`, "#22d3ee");
+    addCombatLog(`🏰 Reached Floor ${state.floor}! (+5 HP)`, "info");
+    
+    // Warn about elite monsters on higher floors
+    if (state.floor === 5) {
+      setTimeout(() => {
+        addCombatLog(`⚠️ Elite monsters ahead!`, "spawn");
+      }, 500);
+    }
     
     // Spawn lots of particles for celebration
     for (let i = 0; i < 30; i++) {
@@ -681,11 +857,20 @@
     const enemies = state.grid.flat().filter(t => t.type === TYPES.ENEMY);
     const ts = getTileSize();
     
+    showTurnBanner("⚡ SURGE POWER!", false);
+    
+    if (enemies.length > 0) {
+      addCombatLog(`⚡ Transmuted ${enemies.length} monsters into gold!`, "kill");
+    }
+    
     for (const e of enemies) {
+        const monsterIcon = e.monsterData ? e.monsterData.icon : "💀";
+        spawnFloatingText((e.x + 0.5) * ts, (e.y + 0.5) * ts, `${monsterIcon}→💰`, "#fbbf24");
         e.type = TYPES.COIN; // Transmute enemies to gold
         e.val = 5;
         e.hp = 0;
-        spawnParticles((e.x + 0.5) * ts, (e.y + 0.5) * ts, COLORS.enemy, 15);
+        e.monsterData = null;
+        spawnParticles((e.x + 0.5) * ts, (e.y + 0.5) * ts, COLORS.coin, 15);
     }
     
     state.shake = 20;
@@ -699,8 +884,15 @@
         state.bestScore = state.score;
     }
     
-    const bestText = isNewBest ? "🎉 NEW BEST! " : "";
-    const message = `${bestText}Score: ${state.score}\nReached Floor ${state.floor}\nTurns: ${state.turn}`;
+    // Count total monsters on board that killed you
+    const killers = state.grid.flat().filter(t => t.type === TYPES.ENEMY);
+    const killerNames = killers.slice(0, 3).map(e => 
+      e.monsterData ? e.monsterData.icon : "💀"
+    ).join(" ");
+    
+    const bestText = isNewBest ? "🎉 NEW HIGH SCORE!\n" : "";
+    const deathMsg = killers.length > 0 ? `Overwhelmed by ${killers.length} monsters! ${killerNames}\n\n` : "";
+    const message = `${deathMsg}${bestText}⭐ Score: ${state.score}\n🏰 Reached Floor ${state.floor}\n⚔️ Turns survived: ${state.turn}`;
     showOverlay("gameover", message);
   }
 
@@ -806,8 +998,9 @@
             ctx.fillStyle = tile.type === TYPES.ENEMY ? "#fff" : "#000";
             
             if (tile.type === TYPES.ENEMY) {
-                 // Draw enemy with HP bar
-                 ctx.fillText(`${ICONS[tile.type]}`, px + ts/2, py + ts/2 - 8);
+                 // Draw enemy with monster icon
+                 const monsterIcon = tile.monsterData ? tile.monsterData.icon : ICONS[tile.type];
+                 ctx.fillText(monsterIcon, px + ts/2, py + ts/2 - 8);
                  
                  // HP bar background
                  const barW = size * 0.7;
