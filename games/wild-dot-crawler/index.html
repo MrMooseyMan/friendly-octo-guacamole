@@ -310,6 +310,20 @@
             transform: scale(1);
         }
 
+        /* --- Particles --- */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: particle-fade 0.6s ease-out forwards;
+            z-index: 20;
+        }
+
+        @keyframes particle-fade {
+            0% { transform: scale(1) translate(0, 0); opacity: 1; }
+            100% { transform: scale(0) translate(var(--tx), var(--ty)); opacity: 0; }
+        }
+
     </style>
 </head>
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 overflow-hidden select-none">
@@ -357,15 +371,27 @@
                     <div class="hp-bar-bg h-2 w-full mt-1">
                         <div id="player-special-bar" class="hp-bar hp-bar-special" style="width: 0%;"></div>
                     </div>
-                    <span id="player-special-text" class="text-xs text-sky-400 block mt-0.5">Wild Surge: 0/10</span>
+                    <div class="flex justify-between items-center mt-0.5 h-6">
+                        <span id="player-special-text" class="text-xs text-sky-400">Wild Surge: 0/10</span>
+                        <button id="btn-cast-special" class="hidden bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow animate-pulse">
+                            CAST SURGE!
+                        </button>
+                    </div>
                 </div>
             </div>
             
         </div>
         
         <!-- === GAME STATUS === -->
-        <div class="text-center mb-2 h-8 flex justify-between items-center px-4">
+        <div class="text-center mb-2 h-8 flex justify-between items-center px-4 relative">
             <h3 id="turn-status-text" class="text-lg font-bold text-amber-400">Your Turn (3)</h3>
+            
+            <!-- Action Preview (Hidden by default) -->
+            <div id="action-preview" class="absolute left-1/2 -translate-x-1/2 opacity-0 transition-opacity bg-slate-800/80 px-3 py-1 rounded-full border border-slate-600 pointer-events-none">
+                <span id="preview-icon" class="mr-1"></span>
+                <span id="preview-text" class="font-bold text-white text-sm"></span>
+            </div>
+
             <h3 id="combo-text" class="text-lg font-bold text-gray-300 opacity-0 transition-opacity">Combo: <span id="combo-value" class="text-amber-300">x1</span></h3>
         </div>
 
@@ -385,17 +411,34 @@
         </div>
 
         <!-- Help/Start Overlay -->
-        <div id="start-overlay" class="absolute inset-0 bg-slate-900/90 z-40 flex flex-col items-center justify-center p-6 text-center">
-            <h1 class="text-4xl font-fantasy text-emerald-400 mb-4">Wild-Dot Crawler</h1>
-            <p class="mb-8 text-gray-300">Connect 3+ matching runes to fight.</p>
-            <div class="grid grid-cols-2 gap-4 text-sm text-left max-w-xs mb-8">
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-rose-500 rounded-full"></div><span>Attack Enemy</span></div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-emerald-500 rounded-full"></div><span>Heal Self</span></div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-sky-500 rounded-full"></div><span>Charge Special</span></div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-amber-500 rounded-full"></div><span>Gain Shield</span></div>
+        <div id="start-overlay" class="absolute inset-0 bg-slate-900/95 z-40 flex flex-col items-center justify-center p-6 text-center">
+            <h1 class="text-5xl font-fantasy text-emerald-400 mb-2 drop-shadow-lg">Wild-Dot Crawler</h1>
+            <p class="mb-8 text-gray-300 italic">Connect runes. Survive the dungeon.</p>
+            
+            <div class="grid grid-cols-2 gap-x-8 gap-y-4 text-left max-w-sm mb-8 bg-slate-800/50 p-6 rounded-xl border border-slate-700">
+                <div class="flex items-center gap-3">
+                    <div class="w-4 h-4 bg-rose-500 rounded-sm shadow shadow-rose-500/50"></div>
+                    <span class="text-rose-100 font-bold">Attack</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-4 h-4 bg-emerald-500 rounded-sm shadow shadow-emerald-500/50"></div>
+                    <span class="text-emerald-100 font-bold">Heal</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-4 h-4 bg-sky-500 rounded-sm shadow shadow-sky-500/50"></div>
+                    <span class="text-sky-100 font-bold">Charge</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="w-4 h-4 bg-amber-500 rounded-sm shadow shadow-amber-500/50"></div>
+                    <span class="text-amber-100 font-bold">Shield</span>
+                </div>
+                <div class="col-span-2 text-xs text-gray-400 mt-2 text-center pt-2 border-t border-slate-700">
+                    Connect 3+ to act. Long chains & combos boost power!
+                </div>
             </div>
-            <button id="start-button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
-                Enter the Wild
+            
+            <button id="start-button" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-4 px-10 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 text-xl tracking-wide border-2 border-emerald-400/30">
+                ENTER THE WILD
             </button>
         </div>
 
@@ -446,12 +489,16 @@
             const turnStatusText = document.getElementById('turn-status-text');
             const comboText = document.getElementById('combo-text');
             const comboValueText = document.getElementById('combo-value');
+            const actionPreview = document.getElementById('action-preview');
+            const previewText = document.getElementById('preview-text');
+            const previewIcon = document.getElementById('preview-icon');
             
             const playerHpBar = document.getElementById('player-hp-bar');
             const playerHpTextOverlay = document.getElementById('player-hp-text-overlay');
             const playerShieldText = document.getElementById('player-shield-text');
             const playerSpecialBar = document.getElementById('player-special-bar');
             const playerSpecialText = document.getElementById('player-special-text');
+            const btnCastSpecial = document.getElementById('btn-cast-special');
             const playerLevelText = document.getElementById('player-level');
             const playerPortraitContainer = document.getElementById('player-portrait-container');
             
@@ -741,6 +788,46 @@
                 return DOT_COLORS[Math.floor(Math.random() * DOT_COLORS.length)];
             }
 
+            function calculateEffectValue(color, count) {
+                // Same logic as processMove but for preview
+                let comboMult = state.combo.multiplier;
+                if (state.selectedIndices.length >= 3) {
+                     // Predict combo increase for THIS move
+                     const bonus = Math.max(0, (state.combo.turnMoves) * 0.25); 
+                     comboMult = 1.0 + bonus;
+                }
+                
+                const baseValue = count;
+                const lengthBonus = count >= 5 ? 1.5 : (count >= 4 ? 1.2 : 1.0);
+                return Math.floor(baseValue * lengthBonus * comboMult);
+            }
+
+            function createParticles(x, y, color) {
+                const count = 8;
+                const colorHex = COLOR_STROKES[color] || '#fff';
+                
+                for (let i = 0; i < count; i++) {
+                    const p = document.createElement('div');
+                    p.className = 'particle';
+                    p.style.left = x + 'px';
+                    p.style.top = y + 'px';
+                    p.style.backgroundColor = colorHex;
+                    p.style.width = (Math.random() * 6 + 4) + 'px';
+                    p.style.height = p.style.width;
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = Math.random() * 60 + 20;
+                    const tx = Math.cos(angle) * velocity;
+                    const ty = Math.sin(angle) * velocity;
+                    
+                    p.style.setProperty('--tx', `${tx}px`);
+                    p.style.setProperty('--ty', `${ty}px`);
+                    
+                    document.body.appendChild(p);
+                    setTimeout(() => p.remove(), 600);
+                }
+            }
+
             function renderBoard() {
                 boardElement.innerHTML = '';
                 boardElement.style.setProperty('--grid-size', GRID_SIZE);
@@ -854,11 +941,39 @@
                     state.selectedIndices.push({r, c});
                     playSound('connect', state.selectedIndices.length - 1);
                     renderBoard();
+                    updatePreview();
                 }
+            }
+
+            function updatePreview() {
+                if (state.selectedIndices.length < 3) {
+                    actionPreview.style.opacity = '0';
+                    return;
+                }
+                
+                const first = state.selectedIndices[0];
+                const color = state.grid[first.r][first.c];
+                const val = calculateEffectValue(color, state.selectedIndices.length);
+                const type = COLOR_MAP[color].effect;
+                let msg = "";
+                
+                switch(type) {
+                    case 'damage': msg = `Attack ${val + state.player.upgrades.damage}`; break;
+                    case 'heal': msg = `Heal ${Math.floor(val * 1.5)}`; break;
+                    case 'shield': msg = `Shield ${Math.floor(val * 1.5)}`; break;
+                    case 'special': msg = `Charge ${Math.floor(val * 1.5)}`; break;
+                    case 'poison': msg = `Poison ${Math.floor(val * 0.8)}`; break;
+                    case 'powerup': msg = `Buff +${Math.floor(val * 0.8)}`; break;
+                }
+                
+                previewText.innerText = msg;
+                previewText.style.color = COLOR_STROKES[color];
+                actionPreview.style.opacity = '1';
             }
 
             function handleInputEnd() {
                 state.isDragging = false;
+                actionPreview.style.opacity = '0';
                 
                 if (state.selectedIndices.length >= 3) {
                     processMove();
@@ -904,7 +1019,16 @@
                 
                 // 3. Clear Tiles & Refill
                 // Mark as null first
-                state.selectedIndices.forEach(({r, c}) => {
+                state.selectedIndices.forEach(({r, c}, index) => {
+                    // Particle effect at center of tile
+                    if (index === Math.floor(state.selectedIndices.length / 2)) {
+                        // We need to find the element
+                        const el = document.querySelector(`.rune[data-r="${r}"][data-c="${c}"]`);
+                        if (el) {
+                            const rect = el.getBoundingClientRect();
+                            createParticles(rect.left + rect.width/2, rect.top + rect.height/2, color);
+                        }
+                    }
                     state.grid[r][c] = null;
                 });
                 
@@ -1032,19 +1156,7 @@
                 showFloatingText(text, type);
                 updateUI();
                 
-                // Check Wild Surge
-                const cost = Math.max(3, 10 - p.upgrades.specialCost);
-                if (p.special >= cost) {
-                     // Auto trigger special - big attack
-                     p.special -= cost;
-                     const blast = 10 + (p.level * 2) + p.upgrades.damage;
-                     e.hp = Math.max(0, e.hp - blast);
-                     playSound('surge');
-                     setTimeout(() => {
-                         showFloatingText(`WILD SURGE! -${blast}`, "special", true);
-                         animateDamage(enemyPortraitContainer);
-                     }, 300);
-                }
+                // Check Wild Surge (Removed for Manual Cast)
             }
             
             function updatePoisonStatus() {
@@ -1216,6 +1328,13 @@
                 const specialPct = Math.min(100, (p.special / specialCost) * 100);
                 playerSpecialBar.style.width = `${specialPct}%`;
                 playerSpecialText.innerText = `Wild Surge: ${p.special}/${specialCost}`;
+                
+                if (p.special >= specialCost && state.gameActive && state.enemy.hp > 0) {
+                    btnCastSpecial.classList.remove('hidden');
+                } else {
+                    btnCastSpecial.classList.add('hidden');
+                }
+
                 playerLevelText.innerText = `Lvl ${p.level}`;
                 
                 playerPortraitContainer.innerHTML = ICONS['player'];
@@ -1265,8 +1384,35 @@
                 setTimeout(() => el.remove(), 1000);
             }
 
+            // Manually cast special
+            window.castSpecial = function() {
+                const p = state.player;
+                const e = state.enemy;
+                if (!e || e.hp <= 0) return;
+                
+                const cost = Math.max(3, 10 - p.upgrades.specialCost);
+                
+                if (p.special < cost) return;
+                
+                p.special -= cost;
+                
+                // Big attack
+                const blast = 10 + (p.level * 2) + p.upgrades.damage;
+                e.hp = Math.max(0, e.hp - blast);
+                
+                playSound('surge');
+                showFloatingText(`WILD SURGE! -${blast}`, "special", true);
+                createParticles(window.innerWidth/2, window.innerHeight/3, 'blue');
+                animateDamage(enemyPortraitContainer);
+                
+                updateUI();
+                
+                if (e.hp <= 0) handleWin();
+            };
+
             // Init
             startButton.addEventListener('click', startGame);
+            btnCastSpecial.addEventListener('click', window.castSpecial);
             
             // Prevent context menu
             document.addEventListener('contextmenu', event => event.preventDefault());
