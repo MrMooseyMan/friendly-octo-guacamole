@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Wild Dot Crawler</title>
   <link rel="stylesheet" href="./style.css">
 </head>
@@ -11,62 +11,66 @@
     <header class="topbar">
       <div class="title">
         <div class="game-name">Wild Dot Crawler</div>
-        <div class="sub">Turn-based dungeon crawl</div>
+        <div class="sub">Connect runes to survive</div>
       </div>
 
       <div class="stats" aria-label="Stats">
-        <div class="stat"><span class="k">HP</span> <span id="hpText" class="v">—</span></div>
-        <div class="stat"><span class="k">Floor</span> <span id="floorText" class="v">—</span></div>
-        <div class="stat"><span class="k">Score</span> <span id="scoreText" class="v">—</span></div>
-        <div class="stat"><span class="k">Best</span> <span id="bestText" class="v">—</span></div>
+        <div class="stat"><span class="k">HP</span> <span id="hpText" class="v">10/10</span></div>
+        <div class="stat"><span class="k">Shield</span> <span id="shieldText" class="v">0</span></div>
+        <div class="stat"><span class="k">Score</span> <span id="scoreText" class="v">0</span></div>
+        <div class="stat"><span class="k">Best</span> <span id="bestText" class="v">0</span></div>
       </div>
     </header>
 
     <section class="boardWrap">
       <canvas id="game" width="640" height="640" aria-label="Game board"></canvas>
+      
+      <!-- Action Preview Tooltip -->
+      <div id="actionPreview" class="action-preview hidden">
+        <span id="actionText">Attack 5</span>
+      </div>
+
+      <!-- Surge UI -->
+      <div class="surge-container">
+        <div class="surge-bar-bg">
+          <div id="surgeBar" class="surge-bar-fill" style="width: 0%"></div>
+        </div>
+        <button id="surgeBtn" class="btn surge-btn" disabled>CAST SURGE!</button>
+      </div>
 
       <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Help">
         <div class="card">
           <h1 id="overlayTitle">How to play</h1>
           <p id="overlayMessage" class="overlayMsg"></p>
           <ul id="overlayHelp">
-            <li><b>Move</b>: Arrow keys / WASD (or tap the D‑pad)</li>
-            <li><b>Goal</b>: find the <b>stairs</b> (green) to go deeper</li>
-            <li><b>Loot</b>: grab <b>gems</b> (+score) and <b>hearts</b> (+HP)</li>
-            <li><b>Danger</b>: enemies move after you — don’t get surrounded</li>
+            <li><b>Connect</b> matching runes by dragging.</li>
+            <li><span class="sw s-sword"></span> <b>Sword</b>: Connect to enemies to damage them.</li>
+            <li><span class="sw s-potion"></span> <b>Potion</b>: Heal HP.</li>
+            <li><span class="sw s-shield"></span> <b>Shield</b>: Gain armor against attacks.</li>
+            <li><span class="sw s-coin"></span> <b>Coin</b>: Earn points & charge Surge.</li>
+            <li><span class="sw s-enemy"></span> <b>Enemy</b>: Attack you if not killed!</li>
+            <li><b>Wild Surge</b>: Fill the bar to unleash a powerful clear!</li>
           </ul>
-          <div class="legend">
-            <div class="chip"><span class="sw s-player"></span> You</div>
-            <div class="chip"><span class="sw s-enemy"></span> Enemy</div>
-            <div class="chip"><span class="sw s-gem"></span> Gem</div>
-            <div class="chip"><span class="sw s-heart"></span> Heart</div>
-            <div class="chip"><span class="sw s-stairs"></span> Stairs</div>
-          </div>
           <div class="row">
-            <button id="startBtn" class="btn primary">Start run</button>
+            <button id="startBtn" class="btn primary">Start Run</button>
             <button id="closeHelpBtn" class="btn">Close</button>
           </div>
-          <p class="hint">Tip: press <b>?</b> anytime for help. Press <b>R</b> to restart.</p>
+          <p class="hint">Tip: Long chains give bonuses!</p>
         </div>
       </div>
     </section>
 
     <section class="controls" aria-label="Controls">
       <div class="buttons">
-        <button id="newBtn" class="btn">New run</button>
+        <button id="newBtn" class="btn">New Run</button>
         <button id="helpBtn" class="btn">Help (?)</button>
       </div>
-
-      <div class="dpad" aria-label="Movement controls">
-        <button class="pad up" data-move="up" aria-label="Move up">▲</button>
-        <button class="pad left" data-move="left" aria-label="Move left">◀</button>
-        <button class="pad right" data-move="right" aria-label="Move right">▶</button>
-        <button class="pad down" data-move="down" aria-label="Move down">▼</button>
-      </div>
-
-      <div class="log">
-        <div class="logTitle">Log</div>
-        <div id="log" class="logBody" aria-live="polite"></div>
+      <!-- Log removed or simplified? Let's keep a small log if needed, or remove it for cleanliness. 
+           The prompt mentions "easier to understand", visuals are better than logs. 
+           I'll keep a minimal log but maybe hide it or style it smaller.
+           Actually, let's keep it but make it small. -->
+      <div class="log" style="display:none;"> <!-- Hidden by default, maybe use for debugging or critical info -->
+        <div id="log" class="logBody"></div>
       </div>
     </section>
   </main>
