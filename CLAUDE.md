@@ -11,6 +11,12 @@ This is a personal sandbox/playground repository. The owner uses this to build *
 - **Casual vibes**: This isn't a production codebase. It's for fun, learning, and experimentation.
 - **Speed over perfection**: The goal is to ship ideas quickly, not to build perfect systems.
 
+## Operational Rules
+
+- **Update Landing Page**: Whenever a new playable project (game, website, app) is added, you **MUST** add a card for it to `/workspace/index.html` so it's accessible on the Netlify deployment.
+    - Use the "Playable Now" section for static web projects.
+    - Use the "Needs a Server" section for backend-reliant projects.
+
 ## How to Help
 
 1. **Be flexible**: The owner might ask to build completely unrelated things in the same session.
