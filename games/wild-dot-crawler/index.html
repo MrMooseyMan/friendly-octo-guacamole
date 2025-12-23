@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wild-Dot Crawler v2.2</title>
+    <title>Wild-Dot Crawler</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -16,11 +16,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 
     <style>
-        /* Use Inter for UI, Lora for fantasy text */
         body {
             font-family: 'Inter', sans-serif;
-            touch-action: none; /* Prevent scrolling on mobile while dragging */
-            background-color: #0f172a; /* bg-slate-900 */
+            touch-action: none;
+            background-color: #0f172a;
         }
         
         .font-fantasy {
@@ -32,35 +31,49 @@
             display: grid;
             grid-template-columns: repeat(var(--grid-size, 6), 1fr);
             grid-template-rows: repeat(var(--grid-size, 6), 1fr);
-            gap: 6px; /* Tighter gap */
+            gap: 6px;
             user-select: none;
             touch-action: none;
             position: relative;
         }
         
-        /* 'Rune' is the new 'dot' */
         .rune {
             width: 100%;
             aspect-ratio: 1 / 1;
-            border-radius: 0.5rem; /* rounded-lg */
+            border-radius: 0.5rem;
             cursor: pointer;
             transition: all 0.15s ease;
-            background-color: #334155; /* bg-slate-700 */
+            background-color: #334155;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0,0,0,0.1);
-            padding: 15%; /* Padding for the SVG icon */
+            padding: 15%;
             position: relative;
         }
         
         .rune.selected {
             transform: scale(1.15);
             opacity: 1;
-            background-color: #475569; /* bg-slate-600 */
+            background-color: #475569;
             box-shadow: 0 0 20px 8px var(--glow-color, #fff);
             z-index: 10;
         }
 
         .rune.chain-start {
             animation: pulse-glow 0.5s ease-in-out infinite alternate;
+        }
+
+        .rune.hint {
+            animation: hint-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes hint-pulse {
+            0%, 100% { 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 15px 5px var(--glow-color, #fff);
+                transform: scale(1.05);
+            }
         }
 
         /* SVG connector lines overlay */
@@ -85,22 +98,22 @@
         }
 
         /* --- Rune Icon Colors --- */
-        .rune-red svg { fill: #f43f5e; } /* rose-500 */
+        .rune-red svg { fill: #f43f5e; }
         .rune-red { --glow-color: #f43f5e; } 
         
-        .rune-green svg { fill: #10b981; } /* emerald-500 */
+        .rune-green svg { fill: #10b981; }
         .rune-green { --glow-color: #10b981; }
         
-        .rune-blue svg { fill: #0ea5e9; } /* sky-500 */
+        .rune-blue svg { fill: #0ea5e9; }
         .rune-blue { --glow-color: #0ea5e9; }
         
-        .rune-yellow svg { fill: #f59e0b; } /* amber-500 */
+        .rune-yellow svg { fill: #f59e0b; }
         .rune-yellow { --glow-color: #f59e0b; }
         
-        .rune-purple svg { fill: #a78bfa; } /* violet-400 */
+        .rune-purple svg { fill: #a78bfa; }
         .rune-purple { --glow-color: #a78bfa; }
 
-        .rune-white svg { fill: #f1f5f9; } /* slate-100 */
+        .rune-white svg { fill: #f1f5f9; }
         .rune-white { --glow-color: #f1f5f9; }
         
         /* --- Animations --- */
@@ -223,7 +236,7 @@
 
         /* --- UI Elements --- */
         .hp-bar-bg {
-            background-color: #374151; /* gray-700 */
+            background-color: #374151;
             border-radius: 9999px;
             overflow: hidden;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
@@ -236,10 +249,10 @@
             background-image: linear-gradient(to right, rgba(255,255,255,0.2), rgba(255,255,255,0.0));
         }
         
-        .hp-bar-player { background-color: #10b981; } /* emerald-500 */
-        .hp-bar-enemy { background-color: #f43f5e; } /* rose-500 */
-        .hp-bar-special { background-color: #0ea5e9; } /* sky-500 */
-        .hp-bar-shield { background-color: #f59e0b; } /* amber-500 */
+        .hp-bar-player { background-color: #10b981; }
+        .hp-bar-enemy { background-color: #f43f5e; }
+        .hp-bar-special { background-color: #0ea5e9; }
+        .hp-bar-shield { background-color: #f59e0b; }
 
         /* Combo meter styling */
         .combo-active {
@@ -262,8 +275,8 @@
         .portrait-container {
             width: 80px;
             height: 80px;
-            background-color: #1e293b; /* slate-800 */
-            border: 2px solid #334155; /* slate-700 */
+            background-color: #1e293b;
+            border: 2px solid #334155;
             border-radius: 0.5rem;
             padding: 4px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
@@ -310,6 +323,90 @@
             transform: scale(1);
         }
 
+        /* Tutorial tooltip */
+        .tutorial-tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.98);
+            border: 2px solid #0ea5e9;
+            border-radius: 1rem;
+            padding: 1rem;
+            color: white;
+            max-width: 300px;
+            z-index: 100;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            animation: pop-in 0.3s ease-out;
+        }
+
+        .tutorial-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
+        }
+
+        .tutorial-arrow.bottom {
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 12px 12px 0 12px;
+            border-color: #0ea5e9 transparent transparent transparent;
+        }
+
+        .tutorial-arrow.top {
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 12px 12px 12px;
+            border-color: transparent transparent #0ea5e9 transparent;
+        }
+
+        /* Progress indicator */
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #475569;
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: #0ea5e9;
+            transform: scale(1.3);
+        }
+
+        /* Help button */
+        .help-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            z-index: 40;
+            transition: all 0.2s ease;
+        }
+
+        .help-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        }
+
     </style>
 </head>
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 overflow-hidden select-none">
@@ -352,6 +449,7 @@
                     </div>
                     <div class="flex justify-between text-xs px-1 mt-0.5">
                         <span id="player-shield-text" class="text-amber-400 font-bold"></span>
+                        <span id="player-xp-text" class="text-sky-400 font-bold"></span>
                     </div>
                     <!-- Special -->
                     <div class="hp-bar-bg h-2 w-full mt-1">
@@ -365,7 +463,7 @@
         
         <!-- === GAME STATUS === -->
         <div class="text-center mb-2 h-8 flex justify-between items-center px-4">
-            <h3 id="turn-status-text" class="text-lg font-bold text-amber-400">Your Turn (3)</h3>
+            <h3 id="turn-status-text" class="text-lg font-bold text-amber-400">Your Turn</h3>
             <h3 id="combo-text" class="text-lg font-bold text-gray-300 opacity-0 transition-opacity">Combo: <span id="combo-value" class="text-amber-300">x1</span></h3>
         </div>
 
@@ -385,21 +483,54 @@
         </div>
 
         <!-- Help/Start Overlay -->
-        <div id="start-overlay" class="absolute inset-0 bg-slate-900/90 z-40 flex flex-col items-center justify-center p-6 text-center">
+        <div id="start-overlay" class="absolute inset-0 bg-slate-900/95 z-40 flex flex-col items-center justify-center p-6 text-center">
             <h1 class="text-4xl font-fantasy text-emerald-400 mb-4">Wild-Dot Crawler</h1>
-            <p class="mb-8 text-gray-300">Connect 3+ matching runes to fight.</p>
-            <div class="grid grid-cols-2 gap-4 text-sm text-left max-w-xs mb-8">
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-rose-500 rounded-full"></div><span>Attack Enemy</span></div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-emerald-500 rounded-full"></div><span>Heal Self</span></div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-sky-500 rounded-full"></div><span>Charge Special</span></div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-amber-500 rounded-full"></div><span>Gain Shield</span></div>
+            <p class="mb-6 text-gray-300 text-lg">Match 3+ runes to battle monsters!</p>
+            
+            <div class="bg-slate-800 rounded-xl p-4 mb-6 max-w-sm border border-slate-700">
+                <h3 class="text-amber-400 font-bold mb-3">Rune Effects:</h3>
+                <div class="grid grid-cols-2 gap-3 text-sm text-left">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-rose-500 rounded-full flex-shrink-0"></div>
+                        <span><strong class="text-rose-400">Red:</strong> Attack</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-emerald-500 rounded-full flex-shrink-0"></div>
+                        <span><strong class="text-emerald-400">Green:</strong> Heal</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-sky-500 rounded-full flex-shrink-0"></div>
+                        <span><strong class="text-sky-400">Blue:</strong> Energy</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-amber-500 rounded-full flex-shrink-0"></div>
+                        <span><strong class="text-amber-400">Yellow:</strong> Shield</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-violet-400 rounded-full flex-shrink-0"></div>
+                        <span><strong class="text-violet-400">Purple:</strong> Poison</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-slate-100 rounded-full flex-shrink-0"></div>
+                        <span><strong class="text-slate-100">White:</strong> All Stats</span>
+                    </div>
+                </div>
             </div>
+
+            <div class="mb-6 text-sm text-gray-400 max-w-xs">
+                <p class="mb-2">💡 <strong>Tip:</strong> Longer chains = bigger effects!</p>
+                <p>⚡ Multiple moves in one turn = combo bonus!</p>
+            </div>
+            
             <button id="start-button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
-                Enter the Wild
+                Start Adventure
             </button>
         </div>
 
     </div>
+
+    <!-- Help Button -->
+    <div id="help-button" class="help-button">?</div>
 
     <!-- === VICTORY MODAL === -->
     <div id="modal" class="modal-backdrop">
@@ -450,6 +581,7 @@
             const playerHpBar = document.getElementById('player-hp-bar');
             const playerHpTextOverlay = document.getElementById('player-hp-text-overlay');
             const playerShieldText = document.getElementById('player-shield-text');
+            const playerXpText = document.getElementById('player-xp-text');
             const playerSpecialBar = document.getElementById('player-special-bar');
             const playerSpecialText = document.getElementById('player-special-text');
             const playerLevelText = document.getElementById('player-level');
@@ -471,6 +603,7 @@
             const startOverlay = document.getElementById('start-overlay');
             const startButton = document.getElementById('start-button');
             const floatingTextContainer = document.getElementById('floating-text-container');
+            const helpButton = document.getElementById('help-button');
 
             // Color to line stroke mapping
             const COLOR_STROKES = {
@@ -485,12 +618,12 @@
             // --- SVG Icons & Portraits ---
             const ICONS = {
                 // RUNES
-                red: `<svg viewBox="0 0 24 24"><path d="M19.1 1.9c-1.1-1.1-2.7-1.7-4.3-1.7-1.6 0-3.2.6-4.3 1.7L1.9 10.5c-1.1 1.1-1.7 2.7-1.7 4.3s.6 3.2 1.7 4.3l1.8 1.8c1.1 1.1 2.7 1.7 4.3 1.7s3.2-.6 4.3-1.7l8.6-8.6c1.1-1.1 1.7-2.7 1.7-4.3s-.6-3.2-1.7-4.3zM18 10.2l-8.6 8.6c-.4.4-1 .4-1.4 0l-1.8-1.8c-.4-.4-.4-1 0-1.4l8.6-8.6c.4-.4 1-.4 1.4 0l1.8 1.8c.4.4.4 1 0 1.4zM4.7 17.5l-1.8-1.8c-.8-.8-.8-2 0-2.8l8.6-8.6c.8-.8 2-.8 2.8 0l1.8 1.8c.8.8.8 2 0 2.8l-8.6 8.6c-.8.8-2 .8-2.8 0z"></path></svg>`, // Claw
-                green: `<svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z"></path><path d="M12 4c-2.1 0-4 1.3-4.8 3.2-.3.6.3 1.2.9 1.2h7.8c.6 0 1.2-.6.9-1.2C16 5.3 14.1 4 12 4z"></path><path d="M12 14c2.1 0 4-1.3 4.8-3.2.3-.6-.3-1.2-.9-1.2H8.1c-.6 0-1.2.6-.9 1.2C8 12.7 9.9 14 12 14z"></path><path d="M12 20c-2.1 0-4-1.3-4.8-3.2-.3-.6.3-1.2.9-1.2h7.8c.6 0 1.2-.6.9-1.2C16 18.7 14.1 20 12 20z"></path></svg>`, // Leaf
-                blue: `<svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm-2.8-11.2c.4-.4 1-.4 1.4 0l3.5 3.5c.4.4.4 1 0 1.4l-3.5 3.5c-.4.4-1 .4-1.4 0l-3.5-3.5c-.4-.4-.4-1 0-1.4l3.5-3.5z"></path></svg>`, // Mind
-                yellow: `<svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.2l8.2 4.1v7.4L12 19.8l-8.2-4.1V8.3L12 4.2zM4 8.3v7.4l8 4v-7.4l-8-4zM12 12.2l-8-4 8-4 8 4-8 4z"></path></svg>`, // Shield
-                purple: `<svg viewBox="0 0 24 24"><path d="M12 2c-3.3 0-6 2.7-6 6 0 3.1 2.2 5.7 5.1 6V22h1.8v-8c2.9-.3 5.1-2.9 5.1-6 0-3.3-2.7-6-6-6zm0 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path></svg>`, // Fang
-                white: `<svg viewBox="0 0 24 24"><path d="M12 2l2.6 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.4L12 2z"></path></svg>`, // Sun Shard
+                red: `<svg viewBox="0 0 24 24"><path d="M19.1 1.9c-1.1-1.1-2.7-1.7-4.3-1.7-1.6 0-3.2.6-4.3 1.7L1.9 10.5c-1.1 1.1-1.7 2.7-1.7 4.3s.6 3.2 1.7 4.3l1.8 1.8c1.1 1.1 2.7 1.7 4.3 1.7s3.2-.6 4.3-1.7l8.6-8.6c1.1-1.1 1.7-2.7 1.7-4.3s-.6-3.2-1.7-4.3zM18 10.2l-8.6 8.6c-.4.4-1 .4-1.4 0l-1.8-1.8c-.4-.4-.4-1 0-1.4l8.6-8.6c.4-.4 1-.4 1.4 0l1.8 1.8c.4.4.4 1 0 1.4zM4.7 17.5l-1.8-1.8c-.8-.8-.8-2 0-2.8l8.6-8.6c.8-.8 2-.8 2.8 0l1.8 1.8c.8.8.8 2 0 2.8l-8.6 8.6c-.8.8-2 .8-2.8 0z"></path></svg>`,
+                green: `<svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z"></path><path d="M12 4c-2.1 0-4 1.3-4.8 3.2-.3.6.3 1.2.9 1.2h7.8c.6 0 1.2-.6.9-1.2C16 5.3 14.1 4 12 4z"></path><path d="M12 14c2.1 0 4-1.3 4.8-3.2.3-.6-.3-1.2-.9-1.2H8.1c-.6 0-1.2.6-.9 1.2C8 12.7 9.9 14 12 14z"></path><path d="M12 20c-2.1 0-4-1.3-4.8-3.2-.3-.6.3-1.2.9-1.2h7.8c.6 0 1.2-.6.9-1.2C16 18.7 14.1 20 12 20z"></path></svg>`,
+                blue: `<svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm-2.8-11.2c.4-.4 1-.4 1.4 0l3.5 3.5c.4.4.4 1 0 1.4l-3.5 3.5c-.4.4-1 .4-1.4 0l-3.5-3.5c-.4-.4-.4-1 0-1.4l3.5-3.5z"></path></svg>`,
+                yellow: `<svg viewBox="0 0 24 24"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.2l8.2 4.1v7.4L12 19.8l-8.2-4.1V8.3L12 4.2zM4 8.3v7.4l8 4v-7.4l-8-4zM12 12.2l-8-4 8-4 8 4-8 4z"></path></svg>`,
+                purple: `<svg viewBox="0 0 24 24"><path d="M12 2c-3.3 0-6 2.7-6 6 0 3.1 2.2 5.7 5.1 6V22h1.8v-8c2.9-.3 5.1-2.9 5.1-6 0-3.3-2.7-6-6-6zm0 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path></svg>`,
+                white: `<svg viewBox="0 0 24 24"><path d="M12 2l2.6 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.4L12 2z"></path></svg>`,
 
                 // PORTRAITS
                 player: `<svg viewBox="0 0 100 100" fill="#10b981"><path d="M50 10 C 30 10, 30 35, 30 35 C 30 55, 40 65, 50 80 C 60 65, 70 55, 70 35 C 70 35, 70 10, 50 10 z M 50 40 A 5 5 0 0 1 45 45 A 5 5 0 0 1 40 40 A 5 5 0 0 1 45 35 A 5 5 0 0 1 50 40 z M 60 40 A 5 5 0 0 1 55 45 A 5 5 0 0 1 50 40 A 5 5 0 0 1 55 35 A 5 5 0 0 1 60 40 z M 40 55 A 15 10 0 0 0 60 55 L 60 60 A 20 15 0 0 1 40 60 z"></path><path d="M20 90 L 30 70 L 35 75 L 25 95 z" fill-opacity="0.8"></path><path d="M80 90 L 70 70 L 65 75 L 75 95 z" fill-opacity="0.8"></path></svg>`,
@@ -517,14 +650,12 @@
             // --- Audio Synths (Tone.js) ---
             let audioReady = false;
             
-            // Create synths but don't connect them until interaction
             let boopSynth, connectSynth, hitSynth, healSynth, squareSynth, powerupSynth;
             let poisonSynth, comboSynth, clearSynth, levelUpSynth;
 
             function initAudio() {
                 if (audioReady) return;
                 
-                // Base synths
                 boopSynth = new Tone.Synth({ 
                     oscillator: { type: "sine" }, 
                     envelope: { attack: 0.005, decay: 0.08, sustain: 0, release: 0.05 } 
@@ -555,7 +686,6 @@
                     envelope: { attack: 0.01, decay: 0.3, sustain: 0.1, release: 0.15 } 
                 }).toDestination();
                 
-                // New synths for enhanced audio
                 poisonSynth = new Tone.Synth({ 
                     oscillator: { type: "fmsine" }, 
                     envelope: { attack: 0.02, decay: 0.3, sustain: 0, release: 0.2 } 
@@ -589,7 +719,6 @@
                             boopSynth.triggerAttackRelease("C5", "32n");
                             break;
                         case 'connect':
-                            // Rising arpeggio based on chain length
                             const notes = ["C5", "D5", "E5", "G5", "A5", "C6", "D6", "E6", "G6", "C7"];
                             const noteIdx = Math.min(value, notes.length - 1);
                             connectSynth.triggerAttackRelease(notes[noteIdx], "16n");
@@ -617,21 +746,18 @@
                             setTimeout(() => powerupSynth.triggerAttackRelease("G5", "8n"), 200);
                             break;
                         case 'surge':
-                            // Wild surge power attack
                             powerupSynth.triggerAttackRelease("G4", "8n");
                             setTimeout(() => powerupSynth.triggerAttackRelease("C5", "8n"), 80);
                             setTimeout(() => powerupSynth.triggerAttackRelease("E5", "8n"), 160);
                             setTimeout(() => hitSynth.triggerAttackRelease("8n"), 250);
                             break;
                         case 'combo':
-                            // Chord based on combo multiplier
                             const comboLevel = Math.min(value, 3);
                             if (comboLevel >= 2) {
                                 comboSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
                             }
                             break;
                         case 'clear':
-                            // Tiles clearing cascade
                             const clearNote = ["C4", "E4", "G4", "C5"][Math.min(value, 3)];
                             clearSynth.triggerAttackRelease(clearNote, "16n");
                             break;
@@ -647,7 +773,6 @@
                             levelUpSynth.triggerAttackRelease(["E4", "G4", "B4", "D5"], "2n", "+0.6");
                             break;
                         case 'damage':
-                            // Player taking damage
                             hitSynth.triggerAttackRelease("8n");
                             break;
                         case 'block':
@@ -661,8 +786,8 @@
 
             // --- Game State ---
             let state = {
-                grid: [], // 2D array of strings (colors)
-                selectedIndices: [], // Array of {r, c}
+                grid: [],
+                selectedIndices: [],
                 isDragging: false,
                 player: { 
                     hp: 20, 
@@ -675,20 +800,21 @@
                     nextLevelXp: 10, 
                     upgrades: { damage: 0, hp: 0, specialCost: 0 } 
                 },
-                enemy: null, // Current enemy object
+                enemy: null,
                 turn: { movesLeft: 3, totalMoves: 3 },
-                combo: { count: 0, multiplier: 1.0, turnMoves: 0 }, // Track combos within turn
-                poison: { active: false, damage: 0, turns: 0 }, // Enemy poison status
+                combo: { count: 0, multiplier: 1.0, turnMoves: 0 },
+                poison: { active: false, damage: 0, turns: 0 },
                 gameActive: false,
-                level: 1
+                level: 1,
+                firstMove: true // Track if this is player's first move ever
             };
 
             const ENEMIES = [
-                { type: 'gloom-cap', name: 'Gloom-cap', maxHp: 20, attack: 3, xp: 5 },
-                { type: 'briar-wolf', name: 'Briar Wolf', maxHp: 30, attack: 5, xp: 8 },
-                { type: 'gloom-sprite', name: 'Gloom Sprite', maxHp: 15, attack: 2, xp: 4 }, // Weak but annoying?
-                { type: 'shadow-stalker', name: 'Shadow Stalker', maxHp: 40, attack: 6, xp: 12 },
-                { type: 'grove-wraith', name: 'Grove Wraith', maxHp: 60, attack: 8, xp: 20 }
+                { type: 'gloom-cap', name: 'Gloom-cap', maxHp: 15, attack: 2, xp: 5 },
+                { type: 'briar-wolf', name: 'Briar Wolf', maxHp: 25, attack: 4, xp: 8 },
+                { type: 'gloom-sprite', name: 'Gloom Sprite', maxHp: 18, attack: 3, xp: 6 },
+                { type: 'shadow-stalker', name: 'Shadow Stalker', maxHp: 35, attack: 5, xp: 12 },
+                { type: 'grove-wraith', name: 'Grove Wraith', maxHp: 50, attack: 7, xp: 20 }
             ];
 
             // --- Game Logic ---
@@ -700,27 +826,84 @@
                 resetGrid();
                 updateUI();
                 state.gameActive = true;
+                state.firstMove = true;
+                
+                // Show hint for first move
+                setTimeout(showFirstMoveHint, 1000);
+            }
+
+            function showFirstMoveHint() {
+                if (!state.firstMove) return;
+                
+                // Find a possible match of 3+
+                const match = findPossibleMatch();
+                if (match && match.length > 0) {
+                    // Highlight the runes
+                    match.forEach(({r, c}) => {
+                        const rune = boardElement.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+                        if (rune) {
+                            rune.classList.add('hint');
+                        }
+                    });
+                    
+                    // Remove hints after 3 seconds
+                    setTimeout(() => {
+                        document.querySelectorAll('.rune.hint').forEach(r => r.classList.remove('hint'));
+                    }, 3000);
+                }
+            }
+
+            function findPossibleMatch() {
+                // Simple algorithm: find any 3+ adjacent tiles of same color
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    for (let c = 0; c < GRID_SIZE; c++) {
+                        const color = state.grid[r][c];
+                        const visited = new Set();
+                        const chain = [];
+                        
+                        function dfs(row, col) {
+                            const key = `${row},${col}`;
+                            if (visited.has(key)) return;
+                            if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) return;
+                            if (state.grid[row][col] !== color) return;
+                            
+                            visited.add(key);
+                            chain.push({r: row, c: col});
+                            
+                            // Check all 8 directions
+                            for (let dr = -1; dr <= 1; dr++) {
+                                for (let dc = -1; dc <= 1; dc++) {
+                                    if (dr === 0 && dc === 0) continue;
+                                    dfs(row + dr, col + dc);
+                                }
+                            }
+                        }
+                        
+                        dfs(r, c);
+                        if (chain.length >= 3) {
+                            return chain.slice(0, 5); // Return first 5 for hint
+                        }
+                    }
+                }
+                return [];
             }
 
             function spawnEnemy(index) {
-                // simple progression: loop through enemies, scaling HP/Damage
                 const template = ENEMIES[index % ENEMIES.length];
                 const scaling = Math.floor(index / ENEMIES.length);
                 
                 state.enemy = {
                     ...template,
-                    maxHp: template.maxHp + (scaling * 10),
-                    hp: template.maxHp + (scaling * 10),
+                    maxHp: template.maxHp + (scaling * 8),
+                    hp: template.maxHp + (scaling * 8),
                     attack: template.attack + (scaling * 1),
                     level: index + 1
                 };
                 
-                // Reset player turn and states
                 state.turn.movesLeft = state.turn.totalMoves;
                 state.combo = { count: 0, multiplier: 1.0, turnMoves: 0 };
                 state.poison = { active: false, damage: 0, turns: 0 };
                 
-                // Reset UI
                 comboText.classList.remove('combo-active', 'combo-high', 'combo-super');
                 updatePoisonStatus();
             }
@@ -745,7 +928,6 @@
                 boardElement.innerHTML = '';
                 boardElement.style.setProperty('--grid-size', GRID_SIZE);
 
-                // Create tiles
                 for (let r = 0; r < GRID_SIZE; r++) {
                     for (let c = 0; c < GRID_SIZE; c++) {
                         const color = state.grid[r][c];
@@ -755,14 +937,12 @@
                         rune.dataset.c = c;
                         rune.innerHTML = ICONS[color] || '';
                         
-                        // Check if selected
                         const selectedIdx = state.selectedIndices.findIndex(p => p.r === r && p.c === c);
                         if (selectedIdx !== -1) {
                             rune.classList.add('selected');
                             if (selectedIdx === 0) {
                                 rune.classList.add('chain-start');
                             }
-                            // Add chain length badge on last selected
                             if (selectedIdx === state.selectedIndices.length - 1 && state.selectedIndices.length >= 3) {
                                 const badge = document.createElement('div');
                                 badge.className = 'chain-badge';
@@ -771,7 +951,6 @@
                             }
                         }
 
-                        // Event Listeners for dragging
                         rune.addEventListener('pointerdown', handleInputStart);
                         rune.addEventListener('pointerenter', handleInputMove);
                         
@@ -779,7 +958,6 @@
                     }
                 }
                 
-                // Update connector lines
                 updateConnectorLines();
             }
             
@@ -790,12 +968,10 @@
                     return;
                 }
                 
-                // Get the color for the line
                 const firstSel = state.selectedIndices[0];
                 const color = state.grid[firstSel.r][firstSel.c];
                 const strokeColor = COLOR_STROKES[color] || '#fff';
                 
-                // Calculate points as percentages of the board
                 const cellSize = 100 / GRID_SIZE;
                 const points = state.selectedIndices.map(({r, c}) => {
                     const x = (c + 0.5) * cellSize;
@@ -809,7 +985,6 @@
             }
 
             // --- Interaction ---
-            // We use pointer events for mouse/touch unification
             
             function handleInputStart(e) {
                 if (!state.gameActive || state.turn.movesLeft <= 0) return;
@@ -820,9 +995,8 @@
                 state.isDragging = true;
                 state.selectedIndices = [{r, c}];
                 playSound('select');
-                renderBoard(); // To show selection
+                renderBoard();
                 
-                // Release listener globally
                 document.addEventListener('pointerup', handleInputEnd, { once: true });
             }
 
@@ -833,15 +1007,12 @@
                 const c = parseInt(e.currentTarget.dataset.c);
                 const last = state.selectedIndices[state.selectedIndices.length - 1];
                 
-                // Check if adjacent and same color
-                const isAdjacent = Math.abs(r - last.r) <= 1 && Math.abs(c - last.c) <= 1; // Diagonals allowed
+                const isAdjacent = Math.abs(r - last.r) <= 1 && Math.abs(c - last.c) <= 1;
                 const isSameColor = state.grid[r][c] === state.grid[last.r][last.c];
                 
-                // Prevent backtracking (unless unselecting the last one)
                 const alreadySelectedIdx = state.selectedIndices.findIndex(p => p.r === r && p.c === c);
                 
                 if (alreadySelectedIdx !== -1) {
-                    // Backtracking: if we move to the previous tile, unselect the current last
                     if (alreadySelectedIdx === state.selectedIndices.length - 2) {
                         state.selectedIndices.pop();
                         playSound('deselect');
@@ -861,9 +1032,10 @@
                 state.isDragging = false;
                 
                 if (state.selectedIndices.length >= 3) {
+                    state.firstMove = false; // No longer first move
+                    document.querySelectorAll('.rune.hint').forEach(r => r.classList.remove('hint'));
                     processMove();
                 } else {
-                    // Cancel
                     state.selectedIndices = [];
                     renderBoard();
                 }
@@ -875,48 +1047,38 @@
                 const color = state.grid[state.selectedIndices[0].r][state.selectedIndices[0].c];
                 const count = state.selectedIndices.length;
                 
-                // Update combo
                 state.combo.turnMoves++;
                 state.combo.count++;
                 
-                // Calculate combo multiplier: 1.0 base, +0.25 per additional move this turn
-                const comboBonus = Math.max(0, (state.combo.turnMoves - 1) * 0.25);
+                const comboBonus = Math.max(0, (state.combo.turnMoves - 1) * 0.3);
                 state.combo.multiplier = 1.0 + comboBonus;
                 
-                // Show combo indicator if > 1
                 if (state.combo.turnMoves > 1) {
                     updateComboDisplay();
                     playSound('combo', state.combo.turnMoves);
                 }
                 
-                // 1. Apply Effects
-                const baseValue = count; // Basic linear scaling
+                const baseValue = count;
                 const lengthBonus = count >= 5 ? 1.5 : (count >= 4 ? 1.2 : 1.0);
                 const finalValue = baseValue * lengthBonus * state.combo.multiplier;
                 
                 applyEffect(color, finalValue);
                 
-                // Play clear sound
                 playSound('clear', Math.min(count - 3, 3));
                 
-                // 2. Reduce moves
                 state.turn.movesLeft--;
                 
-                // 3. Clear Tiles & Refill
-                // Mark as null first
                 state.selectedIndices.forEach(({r, c}) => {
                     state.grid[r][c] = null;
                 });
                 
-                // Clear connector line
                 connectorLine.setAttribute('points', '');
                 
                 state.selectedIndices = [];
-                renderBoard(); // Shows gaps
+                renderBoard();
                 
-                await new Promise(r => setTimeout(r, 200)); // Delay for visual
+                await new Promise(r => setTimeout(r, 200));
                 
-                // Drop logic
                 for (let c = 0; c < GRID_SIZE; c++) {
                     let writeIdx = GRID_SIZE - 1;
                     for (let r = GRID_SIZE - 1; r >= 0; r--) {
@@ -926,17 +1088,15 @@
                             writeIdx--;
                         }
                     }
-                    // Fill top
                     while (writeIdx >= 0) {
                         state.grid[writeIdx][c] = getRandomColor();
                         writeIdx--;
                     }
                 }
                 
-                renderBoard(); // Refilled
+                renderBoard();
                 updateUI();
                 
-                // 4. Check End Turn
                 if (state.enemy.hp <= 0) {
                     handleWin();
                 } else if (state.turn.movesLeft <= 0) {
@@ -950,7 +1110,6 @@
                 comboText.classList.add('combo-active');
                 comboText.classList.add('animate-combo-pulse');
                 
-                // Color based on combo level
                 comboText.classList.remove('combo-high', 'combo-super');
                 if (state.combo.turnMoves >= 3) {
                     comboText.classList.add('combo-super');
@@ -958,7 +1117,6 @@
                     comboText.classList.add('combo-high');
                 }
                 
-                // Remove animation class after animation
                 setTimeout(() => comboText.classList.remove('animate-combo-pulse'), 300);
             }
 
@@ -971,38 +1129,37 @@
                 value = Math.floor(value);
 
                 switch(color) {
-                    case 'red': // Damage
+                    case 'red':
                         const dmg = value + p.upgrades.damage;
                         e.hp = Math.max(0, e.hp - dmg);
                         playSound('attack');
                         text = `-${dmg}`;
                         type = 'damage';
-                        // Visual feedback on enemy
                         animateDamage(enemyPortraitContainer);
                         break;
-                    case 'green': // Heal
+                    case 'green':
                         const heal = Math.floor(value * 1.5);
                         const actualHeal = Math.min(heal, p.maxHp - p.hp);
                         p.hp = Math.min(p.maxHp, p.hp + heal);
                         playSound('heal');
-                        text = `+${actualHeal} HP`;
+                        text = actualHeal > 0 ? `+${actualHeal} HP` : 'Full HP!';
                         type = 'heal';
                         break;
-                    case 'yellow': // Shield
+                    case 'yellow':
                         const shield = Math.floor(value * 1.5);
                         p.shield += shield;
                         playSound('shield');
                         text = `+${shield} Shield`;
                         type = 'shield';
                         break;
-                    case 'blue': // Special
+                    case 'blue':
                         const charge = Math.floor(value * 1.5);
-                        p.special = Math.min(p.maxSpecial * 2, p.special + charge); // Can overcharge slightly
+                        p.special = Math.min(p.maxSpecial * 2, p.special + charge);
                         playSound('special');
                         text = `+${charge} Energy`;
                         type = 'special';
                         break;
-                    case 'purple': // Poison (DoT effect)
+                    case 'purple':
                         const poisonDmg = Math.floor(value * 0.8);
                         const poisonDoT = Math.max(1, Math.floor(value * 0.5));
                         e.hp = Math.max(0, e.hp - poisonDmg);
@@ -1011,13 +1168,12 @@
                         type = 'poison';
                         animateDamage(enemyPortraitContainer);
                         
-                        // Apply poison DoT effect
                         state.poison.active = true;
                         state.poison.damage += poisonDoT;
                         state.poison.turns = 3;
                         updatePoisonStatus();
                         break;
-                    case 'white': // Powerup (All stats small boost)
+                    case 'white':
                         const buff = Math.floor(value * 0.8);
                         p.shield += buff;
                         p.special += buff;
@@ -1032,10 +1188,8 @@
                 showFloatingText(text, type);
                 updateUI();
                 
-                // Check Wild Surge
                 const cost = Math.max(3, 10 - p.upgrades.specialCost);
                 if (p.special >= cost) {
-                     // Auto trigger special - big attack
                      p.special -= cost;
                      const blast = 10 + (p.level * 2) + p.upgrades.damage;
                      e.hp = Math.max(0, e.hp - blast);
@@ -1082,19 +1236,16 @@
                 turnStatusText.innerText = "Enemy Turn...";
                 turnStatusText.className = "text-xl font-bold text-rose-400 animate-pulse";
                 
-                // Reset combo at end of player turn
                 state.combo.turnMoves = 0;
                 state.combo.multiplier = 1.0;
                 comboText.classList.remove('combo-active', 'combo-high', 'combo-super');
                 
                 await new Promise(r => setTimeout(r, 600));
                 
-                // Apply poison damage first
                 if (state.poison.active && state.poison.turns > 0) {
                     applyPoisonTick();
                     await new Promise(r => setTimeout(r, 500));
                     
-                    // Check if enemy died from poison
                     if (state.enemy.hp <= 0) {
                         handleWin();
                         return;
@@ -1103,9 +1254,7 @@
                 
                 await new Promise(r => setTimeout(r, 400));
                 
-                // Enemy Attack
                 let dmg = state.enemy.attack;
-                // Shield logic
                 if (state.player.shield > 0) {
                     const blocked = Math.min(state.player.shield, dmg);
                     state.player.shield -= blocked;
@@ -1132,7 +1281,7 @@
                 } else {
                     state.turn.movesLeft = state.turn.totalMoves;
                     state.gameActive = true;
-                    updateUI(); // Reset turn text
+                    updateUI();
                 }
             }
 
@@ -1141,12 +1290,10 @@
                 state.gameActive = false;
                 state.player.xp += state.enemy.xp;
                 
-                // Reset poison status
                 state.poison = { active: false, damage: 0, turns: 0 };
                 updatePoisonStatus();
                 
                 if (state.player.xp >= state.player.nextLevelXp) {
-                    // Level Up
                     setTimeout(() => {
                         playSound('levelup');
                         upgradeModal.classList.add('visible');
@@ -1162,19 +1309,21 @@
             }
 
             function handleLoss() {
+                state.gameActive = false;
                 modalTitle.innerText = "Defeat...";
-                modalText.innerText = `You fell to the ${state.enemy.name}.`;
+                modalTitle.className = "text-3xl font-fantasy font-bold mb-4 text-rose-400";
+                modalText.innerText = `You fell to the ${state.enemy.name}.\n\nDon't give up, Warden!`;
                 modalButton.innerText = "Try Again";
                 modalButton.onclick = () => location.reload();
                 modal.classList.add('visible');
             }
 
-            // Exposed global for modal
             window.nextLevel = function() {
                 modal.classList.remove('visible');
                 state.level++;
                 spawnEnemy(state.level - 1);
                 state.gameActive = true;
+                state.firstMove = false;
                 updateUI();
             };
             
@@ -1190,14 +1339,12 @@
                     p.upgrades.specialCost += 2;
                 }
                 
-                // Handle XP reset
                 p.xp -= p.nextLevelXp;
                 p.nextLevelXp = Math.floor(p.nextLevelXp * 1.5);
                 p.level++;
                 
                 upgradeModal.classList.remove('visible');
                 
-                // Continue to next battle
                 nextLevel();
             };
 
@@ -1207,10 +1354,12 @@
                 const p = state.player;
                 const e = state.enemy;
                 
-                // Player
                 playerHpBar.style.width = `${(p.hp / p.maxHp) * 100}%`;
                 playerHpTextOverlay.innerText = `${p.hp}/${p.maxHp}`;
-                playerShieldText.innerText = p.shield > 0 ? `(${p.shield} Shield)` : "";
+                playerShieldText.innerText = p.shield > 0 ? `🛡 ${p.shield}` : "";
+                
+                const xpProgress = Math.floor((p.xp / p.nextLevelXp) * 100);
+                playerXpText.innerText = `XP: ${p.xp}/${p.nextLevelXp}`;
                 
                 const specialCost = 10 - p.upgrades.specialCost;
                 const specialPct = Math.min(100, (p.special / specialCost) * 100);
@@ -1220,7 +1369,6 @@
                 
                 playerPortraitContainer.innerHTML = ICONS['player'];
 
-                // Enemy
                 if (e) {
                     enemyHpBar.style.width = `${(e.hp / e.maxHp) * 100}%`;
                     enemyHpText.innerText = `${e.hp}/${e.maxHp}`;
@@ -1229,7 +1377,6 @@
                     enemyPortraitContainer.innerHTML = ICONS[e.type] || ICONS['gloom-cap'];
                 }
                 
-                // Turn
                 if (state.gameActive) {
                     turnStatusText.innerText = `Moves: ${state.turn.movesLeft}`;
                     turnStatusText.className = "text-xl font-bold text-amber-400";
@@ -1247,28 +1394,31 @@
                 if (large) el.classList.add('large');
                 el.innerText = text;
                 
-                // Position randomly near center
                 const x = 50 + (Math.random() * 30 - 15);
                 const y = large ? 45 : (40 + (Math.random() * 20 - 10));
                 el.style.left = `${x}%`;
                 el.style.top = `${y}%`;
                 el.style.transform = 'translateX(-50%)';
                 
-                if (type === 'damage') el.style.color = '#f43f5e'; // red
-                else if (type === 'heal') el.style.color = '#10b981'; // green
-                else if (type === 'shield') el.style.color = '#f59e0b'; // amber
-                else if (type === 'special') el.style.color = '#0ea5e9'; // blue
-                else if (type === 'poison') el.style.color = '#a78bfa'; // purple
+                if (type === 'damage') el.style.color = '#f43f5e';
+                else if (type === 'heal') el.style.color = '#10b981';
+                else if (type === 'shield') el.style.color = '#f59e0b';
+                else if (type === 'special') el.style.color = '#0ea5e9';
+                else if (type === 'poison') el.style.color = '#a78bfa';
                 else el.style.color = '#fff';
                 
                 floatingTextContainer.appendChild(el);
                 setTimeout(() => el.remove(), 1000);
             }
 
+            // Help button handler
+            helpButton.addEventListener('click', () => {
+                startOverlay.classList.toggle('hidden');
+            });
+
             // Init
             startButton.addEventListener('click', startGame);
             
-            // Prevent context menu
             document.addEventListener('contextmenu', event => event.preventDefault());
         });
     </script>
