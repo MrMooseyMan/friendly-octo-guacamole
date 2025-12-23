@@ -194,7 +194,13 @@
   // --- Logic ---
 
   function init() {
-    resize();
+    // Wait for next frame to ensure DOM layout is complete
+    requestAnimationFrame(() => {
+      resize();
+      // Resize again after a short delay to handle any late layout changes
+      setTimeout(resize, 100);
+    });
+    
     window.addEventListener("resize", resize);
     
     canvas.addEventListener("pointerdown", onPointerDown);
@@ -709,7 +715,18 @@
 
   function resize() {
     const parent = canvas.parentElement;
-    const size = Math.min(parent.clientWidth, parent.clientHeight, 600); 
+    // Get parent dimensions, with fallback to reasonable defaults
+    let parentWidth = parent.clientWidth || 400;
+    let parentHeight = parent.clientHeight || 400;
+    
+    // Ensure minimum size for visibility
+    const minSize = 300;
+    const maxSize = 600;
+    
+    // Use the smaller of width/height to keep it square, clamped to min/max
+    let size = Math.min(parentWidth, parentHeight, maxSize);
+    size = Math.max(size, minSize);
+    
     const scale = window.devicePixelRatio || 1;
     canvas.width = size * scale;
     canvas.height = size * scale;
@@ -744,6 +761,7 @@
     // Tiles
     const time = Date.now() / 1000;
     for (let x = 0; x < GRID_W; x++) {
+        if (!state.grid[x]) continue; // Safety check for uninitialized column
         for (let y = 0; y < GRID_H; y++) {
             const tile = state.grid[x][y];
             if (!tile) continue;
