@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wild-Dot Crawler v2.2</title>
+    <title>Wild-Dot Crawler v3.0</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -21,6 +21,21 @@
             font-family: 'Inter', sans-serif;
             touch-action: none; /* Prevent scrolling on mobile while dragging */
             background-color: #0f172a; /* bg-slate-900 */
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+        }
+        
+        @media (max-width: 640px) {
+            .game-board {
+                gap: 4px; /* Tighter gap on mobile */
+            }
+            
+            .rune {
+                padding: 12%;
+            }
+            
+            #game-container {
+                padding: 0.5rem;
+            }
         }
         
         .font-fantasy {
@@ -49,6 +64,24 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0,0,0,0.1);
             padding: 15%; /* Padding for the SVG icon */
             position: relative;
+        }
+        
+        .rune:hover:not(.selected) {
+            transform: scale(1.05);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .rune.valid-next {
+            animation: valid-pulse 1s ease-in-out infinite;
+        }
+        
+        @keyframes valid-pulse {
+            0%, 100% { 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0,0,0,0.1), 0 0 0 0 var(--glow-color, #fff);
+            }
+            50% { 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0,0,0,0.1), 0 0 12px 4px var(--glow-color, #fff);
+            }
         }
         
         .rune.selected {
@@ -146,6 +179,29 @@
             50% { opacity: 1; }
         }
         
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1) rotate(180deg); }
+        }
+        
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .rune-clearing {
+            animation: explode 0.3s ease-out forwards;
+        }
+        
         .animate-fall {
             animation: fall 0.3s ease-out;
         }
@@ -221,6 +277,30 @@
             z-index: 15;
         }
 
+        /* --- Tooltip --- */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(15, 23, 42, 0.95);
+            color: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 200;
+            border: 1px solid #475569;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(-5px);
+            transition: opacity 0.2s, transform 0.2s;
+            max-width: 200px;
+            text-align: center;
+        }
+        
+        .tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
         /* --- UI Elements --- */
         .hp-bar-bg {
             background-color: #374151; /* gray-700 */
@@ -367,6 +447,9 @@
         <div class="text-center mb-2 h-8 flex justify-between items-center px-4">
             <h3 id="turn-status-text" class="text-lg font-bold text-amber-400">Your Turn (3)</h3>
             <h3 id="combo-text" class="text-lg font-bold text-gray-300 opacity-0 transition-opacity">Combo: <span id="combo-value" class="text-amber-300">x1</span></h3>
+            <button id="hint-button" class="text-xs text-sky-400 hover:text-sky-300 transition-colors opacity-60 hover:opacity-100" title="Show hint">
+                💡 Hint
+            </button>
         </div>
 
         <!-- === GAME BOARD === -->
@@ -385,18 +468,101 @@
         </div>
 
         <!-- Help/Start Overlay -->
-        <div id="start-overlay" class="absolute inset-0 bg-slate-900/90 z-40 flex flex-col items-center justify-center p-6 text-center">
-            <h1 class="text-4xl font-fantasy text-emerald-400 mb-4">Wild-Dot Crawler</h1>
-            <p class="mb-8 text-gray-300">Connect 3+ matching runes to fight.</p>
-            <div class="grid grid-cols-2 gap-4 text-sm text-left max-w-xs mb-8">
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-rose-500 rounded-full"></div><span>Attack Enemy</span></div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-emerald-500 rounded-full"></div><span>Heal Self</span></div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-sky-500 rounded-full"></div><span>Charge Special</span></div>
-                <div class="flex items-center gap-2"><div class="w-3 h-3 bg-amber-500 rounded-full"></div><span>Gain Shield</span></div>
+        <div id="start-overlay" class="absolute inset-0 bg-slate-900/95 backdrop-blur-sm z-40 flex flex-col items-center justify-center p-6 text-center overflow-y-auto">
+            <div class="max-w-md">
+                <h1 class="text-5xl font-fantasy text-emerald-400 mb-2 drop-shadow-lg">Wild-Dot Crawler</h1>
+                <p class="text-lg text-gray-300 mb-8">Connect matching runes to battle monsters!</p>
+                
+                <!-- How to Play -->
+                <div class="bg-slate-800/80 rounded-xl p-6 mb-6 border border-slate-700 text-left">
+                    <h2 class="text-xl font-fantasy text-amber-400 mb-4 text-center">How to Play</h2>
+                    <div class="space-y-3 text-sm text-gray-300">
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">👆</span>
+                            <div>
+                                <strong class="text-white">Drag to Connect:</strong> Touch and drag across matching colored runes to create chains of 3 or more.
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">🎯</span>
+                            <div>
+                                <strong class="text-white">Plan Your Moves:</strong> You have 3 moves per turn. Make them count!
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">⚡</span>
+                            <div>
+                                <strong class="text-white">Build Combos:</strong> Chain multiple moves in one turn for bonus damage!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Rune Guide -->
+                <div class="bg-slate-800/80 rounded-xl p-6 mb-6 border border-slate-700">
+                    <h2 class="text-xl font-fantasy text-amber-400 mb-4 text-center">Rune Powers</h2>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition">
+                            <div class="w-8 h-8 bg-rose-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg viewBox="0 0 24 24" fill="white" style="width: 20px; height: 20px;"><path d="M19.1 1.9c-1.1-1.1-2.7-1.7-4.3-1.7-1.6 0-3.2.6-4.3 1.7L1.9 10.5c-1.1 1.1-1.7 2.7-1.7 4.3s.6 3.2 1.7 4.3l1.8 1.8c1.1 1.1 2.7 1.7 4.3 1.7s3.2-.6 4.3-1.7l8.6-8.6c1.1-1.1 1.7-2.7 1.7-4.3s-.6-3.2-1.7-4.3zM18 10.2l-8.6 8.6c-.4.4-1 .4-1.4 0l-1.8-1.8c-.4-.4-.4-1 0-1.4l8.6-8.6c.4-.4 1-.4 1.4 0l1.8 1.8c.4.4.4 1 0 1.4zM4.7 17.5l-1.8-1.8c-.8-.8-.8-2 0-2.8l8.6-8.6c.8-.8 2-.8 2.8 0l1.8 1.8c.8.8.8 2 0 2.8l-8.6 8.6c-.8.8-2 .8-2.8 0z"></path></svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-rose-400">Claw</div>
+                                <div class="text-xs text-gray-400">Deal Damage</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition">
+                            <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg viewBox="0 0 24 24" fill="white" style="width: 20px; height: 20px;"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z"></path><path d="M12 4c-2.1 0-4 1.3-4.8 3.2-.3.6.3 1.2.9 1.2h7.8c.6 0 1.2-.6.9-1.2C16 5.3 14.1 4 12 4z"></path><path d="M12 14c2.1 0 4-1.3 4.8-3.2.3-.6-.3-1.2-.9-1.2H8.1c-.6 0-1.2.6-.9 1.2C8 12.7 9.9 14 12 14z"></path><path d="M12 20c-2.1 0-4-1.3-4.8-3.2-.3-.6.3-1.2.9-1.2h7.8c.6 0 1.2-.6.9-1.2C16 18.7 14.1 20 12 20z"></path></svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-emerald-400">Leaf</div>
+                                <div class="text-xs text-gray-400">Heal Yourself</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition">
+                            <div class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg viewBox="0 0 24 24" fill="white" style="width: 20px; height: 20px;"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm-2.8-11.2c.4-.4 1-.4 1.4 0l3.5 3.5c.4.4.4 1 0 1.4l-3.5 3.5c-.4.4-1 .4-1.4 0l-3.5-3.5c-.4-.4-.4-1 0-1.4l3.5-3.5z"></path></svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-sky-400">Mind</div>
+                                <div class="text-xs text-gray-400">Charge Special</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition">
+                            <div class="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg viewBox="0 0 24 24" fill="white" style="width: 20px; height: 20px;"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.2l8.2 4.1v7.4L12 19.8l-8.2-4.1V8.3L12 4.2zM4 8.3v7.4l8 4v-7.4l-8-4zM12 12.2l-8-4 8-4 8 4-8 4z"></path></svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-amber-400">Shield</div>
+                                <div class="text-xs text-gray-400">Block Damage</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition">
+                            <div class="w-8 h-8 bg-violet-400 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg viewBox="0 0 24 24" fill="white" style="width: 20px; height: 20px;"><path d="M12 2c-3.3 0-6 2.7-6 6 0 3.1 2.2 5.7 5.1 6V22h1.8v-8c2.9-.3 5.1-2.9 5.1-6 0-3.3-2.7-6-6-6zm0 10.5c-2.5 0-4.5-2-4.5-4.5s2-4.5 4.5-4.5 4.5 2 4.5 4.5-2 4.5-4.5 4.5z"></path></svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-violet-400">Fang</div>
+                                <div class="text-xs text-gray-400">Poison Enemy</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition">
+                            <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg viewBox="0 0 24 24" fill="#0f172a" style="width: 20px; height: 20px;"><path d="M12 2l2.6 7.2H22l-6 4.4 2.3 7.2L12 16.4 5.7 20.8 8 13.6 2 9.2h7.4L12 2z"></path></svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-200">Sunshard</div>
+                                <div class="text-xs text-gray-400">All Effects</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="start-button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 px-10 rounded-full shadow-lg transform transition hover:scale-105 text-lg w-full">
+                    Enter the Wild
+                </button>
             </div>
-            <button id="start-button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105">
-                Enter the Wild
-            </button>
         </div>
 
     </div>
@@ -446,6 +612,7 @@
             const turnStatusText = document.getElementById('turn-status-text');
             const comboText = document.getElementById('combo-text');
             const comboValueText = document.getElementById('combo-value');
+            const hintButton = document.getElementById('hint-button');
             
             const playerHpBar = document.getElementById('player-hp-bar');
             const playerHpTextOverlay = document.getElementById('player-hp-text-overlay');
@@ -471,6 +638,12 @@
             const startOverlay = document.getElementById('start-overlay');
             const startButton = document.getElementById('start-button');
             const floatingTextContainer = document.getElementById('floating-text-container');
+            
+            // Tooltip element
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.id = 'tooltip';
+            document.body.appendChild(tooltip);
 
             // Color to line stroke mapping
             const COLOR_STROKES = {
@@ -749,6 +922,16 @@
                 for (let r = 0; r < GRID_SIZE; r++) {
                     for (let c = 0; c < GRID_SIZE; c++) {
                         const color = state.grid[r][c];
+                        if (color === null) {
+                            // Create empty placeholder
+                            const empty = document.createElement('div');
+                            empty.className = 'rune';
+                            empty.style.opacity = '0';
+                            empty.style.pointerEvents = 'none';
+                            boardElement.appendChild(empty);
+                            continue;
+                        }
+                        
                         const rune = document.createElement('div');
                         rune.className = `rune rune-${color}`;
                         rune.dataset.r = r;
@@ -769,6 +952,25 @@
                                 badge.textContent = state.selectedIndices.length;
                                 rune.appendChild(badge);
                             }
+                        } else if (state.isDragging && state.selectedIndices.length > 0) {
+                            // Show valid next moves
+                            const last = state.selectedIndices[state.selectedIndices.length - 1];
+                            const isAdjacent = Math.abs(r - last.r) <= 1 && Math.abs(c - last.c) <= 1;
+                            const isSameColor = color === state.grid[last.r][last.c];
+                            if (isAdjacent && isSameColor) {
+                                rune.classList.add('valid-next');
+                            }
+                        }
+                        
+                        // Tooltip on hover (desktop only)
+                        const colorInfo = COLOR_MAP[color];
+                        if (window.matchMedia('(hover: hover)').matches) {
+                            rune.addEventListener('mouseenter', (e) => {
+                                if (!state.isDragging && state.gameActive) {
+                                    showTooltip(e.target, colorInfo.name, colorInfo.effect);
+                                }
+                            });
+                            rune.addEventListener('mouseleave', hideTooltip);
                         }
 
                         // Event Listeners for dragging
@@ -781,6 +983,28 @@
                 
                 // Update connector lines
                 updateConnectorLines();
+            }
+            
+            function showTooltip(element, name, effect) {
+                const rect = element.getBoundingClientRect();
+                const effectDescriptions = {
+                    'damage': 'Deals damage to enemy',
+                    'heal': 'Restores your HP',
+                    'special': 'Charges Wild Surge',
+                    'shield': 'Grants shield points',
+                    'poison': 'Poisons enemy (DoT)',
+                    'powerup': 'Boosts all stats'
+                };
+                
+                tooltip.textContent = `${name}: ${effectDescriptions[effect] || effect}`;
+                tooltip.style.left = `${rect.left + rect.width / 2}px`;
+                tooltip.style.top = `${rect.top - 10}px`;
+                tooltip.style.transform = 'translate(-50%, -100%)';
+                tooltip.classList.add('visible');
+            }
+            
+            function hideTooltip() {
+                tooltip.classList.remove('visible');
             }
             
             function updateConnectorLines() {
@@ -814,6 +1038,8 @@
             function handleInputStart(e) {
                 if (!state.gameActive || state.turn.movesLeft <= 0) return;
                 
+                hideTooltip(); // Hide tooltip when starting drag
+                
                 const r = parseInt(e.currentTarget.dataset.r);
                 const c = parseInt(e.currentTarget.dataset.c);
                 
@@ -824,6 +1050,7 @@
                 
                 // Release listener globally
                 document.addEventListener('pointerup', handleInputEnd, { once: true });
+                document.addEventListener('pointercancel', handleInputEnd, { once: true });
             }
 
             function handleInputMove(e) {
@@ -903,8 +1130,15 @@
                 state.turn.movesLeft--;
                 
                 // 3. Clear Tiles & Refill
-                // Mark as null first
+                // Animate clearing
+                const clearedRunes = [];
                 state.selectedIndices.forEach(({r, c}) => {
+                    const runeEl = boardElement.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+                    if (runeEl) {
+                        runeEl.classList.add('rune-clearing');
+                        clearedRunes.push({r, c, color: state.grid[r][c]});
+                        createParticles(runeEl, state.grid[r][c]);
+                    }
                     state.grid[r][c] = null;
                 });
                 
@@ -912,11 +1146,14 @@
                 connectorLine.setAttribute('points', '');
                 
                 state.selectedIndices = [];
+                
+                await new Promise(r => setTimeout(r, 300)); // Delay for visual
+                
                 renderBoard(); // Shows gaps
                 
-                await new Promise(r => setTimeout(r, 200)); // Delay for visual
+                await new Promise(r => setTimeout(r, 200)); // Delay before refill
                 
-                // Drop logic
+                // Drop logic with animation
                 for (let c = 0; c < GRID_SIZE; c++) {
                     let writeIdx = GRID_SIZE - 1;
                     for (let r = GRID_SIZE - 1; r >= 0; r--) {
@@ -934,6 +1171,16 @@
                 }
                 
                 renderBoard(); // Refilled
+                
+                // Animate new tiles falling in
+                setTimeout(() => {
+                    const newRunes = boardElement.querySelectorAll('.rune');
+                    newRunes.forEach((rune, idx) => {
+                        setTimeout(() => {
+                            rune.classList.add('animate-pop-in');
+                        }, idx * 20);
+                    });
+                }, 50);
                 updateUI();
                 
                 // 4. Check End Turn
@@ -1208,13 +1455,33 @@
                 const e = state.enemy;
                 
                 // Player
-                playerHpBar.style.width = `${(p.hp / p.maxHp) * 100}%`;
+                const hpPercent = (p.hp / p.maxHp) * 100;
+                playerHpBar.style.width = `${hpPercent}%`;
                 playerHpTextOverlay.innerText = `${p.hp}/${p.maxHp}`;
-                playerShieldText.innerText = p.shield > 0 ? `(${p.shield} Shield)` : "";
+                playerShieldText.innerText = p.shield > 0 ? `🛡️ ${p.shield} Shield` : "";
                 
-                const specialCost = 10 - p.upgrades.specialCost;
+                // Add visual warning if HP is low
+                if (hpPercent < 30) {
+                    playerHpBar.style.animation = 'pulse-bright 1s infinite';
+                } else {
+                    playerHpBar.style.animation = '';
+                }
+                
+                const specialCost = Math.max(3, 10 - p.upgrades.specialCost);
                 const specialPct = Math.min(100, (p.special / specialCost) * 100);
                 playerSpecialBar.style.width = `${specialPct}%`;
+                
+                // Highlight when special is ready
+                if (p.special >= specialCost) {
+                    playerSpecialBar.style.animation = 'pulse-bright 1s infinite';
+                    playerSpecialText.style.color = '#0ea5e9';
+                    playerSpecialText.style.textShadow = '0 0 8px rgba(14, 165, 233, 0.5)';
+                } else {
+                    playerSpecialBar.style.animation = '';
+                    playerSpecialText.style.color = '';
+                    playerSpecialText.style.textShadow = '';
+                }
+                
                 playerSpecialText.innerText = `Wild Surge: ${p.special}/${specialCost}`;
                 playerLevelText.innerText = `Lvl ${p.level}`;
                 
@@ -1222,17 +1489,33 @@
 
                 // Enemy
                 if (e) {
-                    enemyHpBar.style.width = `${(e.hp / e.maxHp) * 100}%`;
+                    const enemyHpPercent = (e.hp / e.maxHp) * 100;
+                    enemyHpBar.style.width = `${enemyHpPercent}%`;
                     enemyHpText.innerText = `${e.hp}/${e.maxHp}`;
                     enemyNameText.innerText = e.name;
                     enemyLevelText.innerText = `Lvl ${e.level}`;
                     enemyPortraitContainer.innerHTML = ICONS[e.type] || ICONS['gloom-cap'];
+                    
+                    // Visual feedback when enemy is low
+                    if (enemyHpPercent < 25) {
+                        enemyPortraitContainer.style.animation = 'pulse-bright 1s infinite';
+                    } else {
+                        enemyPortraitContainer.style.animation = '';
+                    }
                 }
                 
                 // Turn
                 if (state.gameActive) {
-                    turnStatusText.innerText = `Moves: ${state.turn.movesLeft}`;
+                    const movesText = state.turn.movesLeft === 1 ? '1 Move Left!' : `${state.turn.movesLeft} Moves`;
+                    turnStatusText.innerText = movesText;
                     turnStatusText.className = "text-xl font-bold text-amber-400";
+                    
+                    // Warning when low on moves
+                    if (state.turn.movesLeft === 1) {
+                        turnStatusText.style.animation = 'pulse-bright 1s infinite';
+                    } else {
+                        turnStatusText.style.animation = '';
+                    }
                 }
             }
 
@@ -1264,7 +1547,135 @@
                 floatingTextContainer.appendChild(el);
                 setTimeout(() => el.remove(), 1000);
             }
+            
+            function createParticles(element, color) {
+                const rect = element.getBoundingClientRect();
+                const boardRect = boardElement.getBoundingClientRect();
+                const colorMap = {
+                    red: '#f43f5e',
+                    green: '#10b981',
+                    blue: '#0ea5e9',
+                    yellow: '#f59e0b',
+                    purple: '#a78bfa',
+                    white: '#f1f5f9'
+                };
+                const particleColor = colorMap[color] || '#fff';
+                
+                for (let i = 0; i < 8; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.backgroundColor = particleColor;
+                    particle.style.left = `${rect.left - boardRect.left + rect.width / 2}px`;
+                    particle.style.top = `${rect.top - boardRect.top + rect.height / 2}px`;
+                    
+                    const angle = (Math.PI * 2 * i) / 8;
+                    const distance = 20 + Math.random() * 30;
+                    const duration = 0.4 + Math.random() * 0.2;
+                    
+                    particle.style.transition = `all ${duration}s ease-out`;
+                    floatingTextContainer.appendChild(particle);
+                    
+                    setTimeout(() => {
+                        particle.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
+                        particle.style.opacity = '0';
+                        setTimeout(() => particle.remove(), duration * 1000);
+                    }, 10);
+                }
+            }
 
+            // Hint system - simplified BFS approach
+            function findHint() {
+                // Find a valid 3+ chain using BFS
+                for (let startR = 0; startR < GRID_SIZE; startR++) {
+                    for (let startC = 0; startC < GRID_SIZE; startC++) {
+                        if (state.grid[startR][startC] === null) continue;
+                        
+                        const color = state.grid[startR][startC];
+                        const queue = [[{r: startR, c: startC}]];
+                        const visited = new Set([`${startR},${startC}`]);
+                        
+                        while (queue.length > 0) {
+                            const path = queue.shift();
+                            
+                            if (path.length >= 3) {
+                                return path; // Found a valid chain
+                            }
+                            
+                            const last = path[path.length - 1];
+                            const directions = [
+                                [-1, -1], [-1, 0], [-1, 1],
+                                [0, -1],           [0, 1],
+                                [1, -1],  [1, 0],  [1, 1]
+                            ];
+                            
+                            for (const [dr, dc] of directions) {
+                                const nr = last.r + dr;
+                                const nc = last.c + dc;
+                                const key = `${nr},${nc}`;
+                                
+                                if (nr >= 0 && nr < GRID_SIZE && 
+                                    nc >= 0 && nc < GRID_SIZE &&
+                                    state.grid[nr][nc] === color &&
+                                    !visited.has(key)) {
+                                    visited.add(key);
+                                    queue.push([...path, {r: nr, c: nc}]);
+                                }
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+            
+            hintButton.addEventListener('click', () => {
+                if (!state.gameActive || state.turn.movesLeft <= 0) return;
+                
+                const hint = findHint();
+                if (hint) {
+                    // Clear any previous hints
+                    boardElement.querySelectorAll('.rune').forEach(r => {
+                        r.style.animation = '';
+                    });
+                    
+                    // Highlight hint tiles with a pulsing animation
+                    hint.forEach(({r, c}, idx) => {
+                        setTimeout(() => {
+                            const rune = boardElement.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+                            if (rune) {
+                                rune.style.animation = 'pulse-glow 0.6s ease-in-out 4';
+                                rune.style.zIndex = '20';
+                            }
+                        }, idx * 80);
+                    });
+                    
+                    // Reset z-index after animation
+                    setTimeout(() => {
+                        hint.forEach(({r, c}) => {
+                            const rune = boardElement.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+                            if (rune) {
+                                rune.style.zIndex = '';
+                            }
+                        });
+                    }, 3000);
+                    
+                    // Disable hint button temporarily
+                    hintButton.disabled = true;
+                    hintButton.classList.add('opacity-50');
+                    hintButton.textContent = '💡 Used';
+                    
+                    setTimeout(() => {
+                        hintButton.disabled = false;
+                        hintButton.classList.remove('opacity-50');
+                        hintButton.textContent = '💡 Hint';
+                    }, 5000);
+                } else {
+                    hintButton.textContent = 'No hints!';
+                    setTimeout(() => {
+                        hintButton.textContent = '💡 Hint';
+                    }, 2000);
+                }
+            });
+            
             // Init
             startButton.addEventListener('click', startGame);
             
