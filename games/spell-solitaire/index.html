@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔮 Spell Solitaire</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>🔮 Spell Solitaire</h1>
+            <div class="stats">
+                <span class="mana-display">✨ Mana: <span id="mana">0</span></span>
+                <span class="moves-display">🎯 Moves: <span id="moves">0</span></span>
+                <span class="score-display">⭐ Score: <span id="score">0</span></span>
+            </div>
+        </header>
+
+        <div class="spell-bar">
+            <button class="spell-btn" id="spell-peek" data-cost="15" title="Peek at a face-down card (15 mana)">
+                <span class="spell-icon">👁️</span>
+                <span class="spell-name">Peek</span>
+                <span class="spell-cost">15✨</span>
+            </button>
+            <button class="spell-btn" id="spell-undo" data-cost="10" title="Undo last move (10 mana)">
+                <span class="spell-icon">⏪</span>
+                <span class="spell-name">Undo</span>
+                <span class="spell-cost">10✨</span>
+            </button>
+            <button class="spell-btn" id="spell-hint" data-cost="5" title="Get a hint (5 mana)">
+                <span class="spell-icon">💡</span>
+                <span class="spell-name">Hint</span>
+                <span class="spell-cost">5✨</span>
+            </button>
+            <button class="spell-btn" id="spell-wildcard" data-cost="50" title="Turn a card wild - matches any suit! (50 mana)">
+                <span class="spell-icon">🃏</span>
+                <span class="spell-name">Wild</span>
+                <span class="spell-cost">50✨</span>
+            </button>
+            <button class="spell-btn" id="spell-reveal" data-cost="30" title="Reveal all face-down cards for 3 seconds (30 mana)">
+                <span class="spell-icon">🌟</span>
+                <span class="spell-name">Reveal</span>
+                <span class="spell-cost">30✨</span>
+            </button>
+        </div>
+
+        <div class="game-board">
+            <!-- Stock and Waste piles -->
+            <div class="top-row">
+                <div class="pile-group stock-waste">
+                    <div class="pile stock" id="stock">
+                        <div class="pile-label">Stock</div>
+                    </div>
+                    <div class="pile waste" id="waste">
+                        <div class="pile-label">Waste</div>
+                    </div>
+                </div>
+                
+                <div class="pile-group foundations">
+                    <div class="pile foundation" id="foundation-0" data-suit="♠">
+                        <div class="pile-label">♠</div>
+                    </div>
+                    <div class="pile foundation" id="foundation-1" data-suit="♥">
+                        <div class="pile-label">♥</div>
+                    </div>
+                    <div class="pile foundation" id="foundation-2" data-suit="♦">
+                        <div class="pile-label">♦</div>
+                    </div>
+                    <div class="pile foundation" id="foundation-3" data-suit="♣">
+                        <div class="pile-label">♣</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tableau piles -->
+            <div class="tableau-row">
+                <div class="pile tableau" id="tableau-0"></div>
+                <div class="pile tableau" id="tableau-1"></div>
+                <div class="pile tableau" id="tableau-2"></div>
+                <div class="pile tableau" id="tableau-3"></div>
+                <div class="pile tableau" id="tableau-4"></div>
+                <div class="pile tableau" id="tableau-5"></div>
+                <div class="pile tableau" id="tableau-6"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="new-game">🎲 New Game</button>
+            <button class="control-btn" id="rules-btn">📖 Rules</button>
+        </div>
+
+        <!-- Win Modal -->
+        <div class="modal" id="win-modal">
+            <div class="modal-content win-content">
+                <h2>🎉 Victory! 🎉</h2>
+                <p>You've mastered the arcane arts of Spell Solitaire!</p>
+                <div class="final-stats">
+                    <p>Final Score: <span id="final-score">0</span></p>
+                    <p>Total Moves: <span id="final-moves">0</span></p>
+                    <p>Mana Earned: <span id="final-mana">0</span></p>
+                </div>
+                <button class="control-btn" id="play-again">🔮 Play Again</button>
+            </div>
+        </div>
+
+        <!-- Rules Modal -->
+        <div class="modal" id="rules-modal">
+            <div class="modal-content">
+                <h2>📖 How to Play</h2>
+                <div class="rules-text">
+                    <h3>🎯 Goal</h3>
+                    <p>Move all cards to the four foundation piles, building each suit from Ace to King.</p>
+                    
+                    <h3>🃏 Basic Rules</h3>
+                    <ul>
+                        <li>Build tableau piles in descending order, alternating colors</li>
+                        <li>Only Kings can be placed in empty tableau spaces</li>
+                        <li>Click the stock pile to draw cards to the waste pile</li>
+                        <li>Double-click a card to auto-move it to a foundation</li>
+                    </ul>
+
+                    <h3>✨ The Twist: Spells!</h3>
+                    <p>Every valid move earns you <strong>mana</strong>. Spend mana to cast powerful spells:</p>
+                    <ul>
+                        <li>👁️ <strong>Peek (15)</strong> - Click a face-down card to see it</li>
+                        <li>⏪ <strong>Undo (10)</strong> - Take back your last move</li>
+                        <li>💡 <strong>Hint (5)</strong> - Highlights a possible move</li>
+                        <li>🃏 <strong>Wild (50)</strong> - Next card placed ignores color rules</li>
+                        <li>🌟 <strong>Reveal (30)</strong> - See all face-down cards for 3 seconds</li>
+                    </ul>
+                </div>
+                <button class="control-btn" id="close-rules">Got it!</button>
+            </div>
+        </div>
+
+        <!-- Hint/Message display -->
+        <div class="message-bar" id="message-bar"></div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
