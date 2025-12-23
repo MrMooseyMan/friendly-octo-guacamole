@@ -10,7 +10,8 @@
     POTION: "potion",
     SHIELD: "shield",
     COIN: "coin",
-    ENEMY: "enemy"
+    ENEMY: "enemy",
+    WILD: "wild"
   };
 
   const COLORS = {
@@ -19,16 +20,25 @@
     shield: "#3b82f6",
     coin: "#fbbf24",
     enemy: "#a855f7",
+    wild: "#ff00ff",
     bg: "#1e293b",
     line: "#ffffff"
   };
 
   const ICONS = {
     sword: "⚔️",
-    potion: "♥",
+    potion: "❤️",
     shield: "🛡️",
-    coin: "🪙",
-    enemy: "💀"
+    coin: "💰",
+    enemy: "💀",
+    wild: "✨"
+  };
+
+  // Chain length bonus multipliers
+  const CHAIN_BONUS = {
+    4: 1.25,  // +25% for 4 tiles
+    5: 1.5,   // +50% for 5 tiles
+    6: 2.0,   // +100% for 6+ tiles
   };
 
   // --- State ---
@@ -44,7 +54,13 @@
     bestScore: Number(localStorage.getItem("wildDot.best")) || 0,
     
     turn: 0,
+    floor: 1,
+    enemiesKilledOnFloor: 0,
+    enemiesNeededForFloor: 5,
     difficulty: 1,
+    
+    combo: 0,
+    lastMoveWasGood: false,
 
     surge: 0,
     maxSurge: 100,
@@ -52,6 +68,7 @@
     animating: false,
     particles: [],
     shake: 0,
+    floatingTexts: [],
   };
 
   // --- DOM ---
@@ -60,9 +77,12 @@
   
   const ui = {
     hp: document.getElementById("hpText"),
+    hpBar: document.getElementById("hpBar"),
     shield: document.getElementById("shieldText"),
     score: document.getElementById("scoreText"),
-    best: document.getElementById("bestText"),
+    floor: document.getElementById("floorText"),
+    floorBar: document.getElementById("floorBar"),
+    floorProgressText: document.getElementById("floorProgressText"),
     surgeBar: document.getElementById("surgeBar"),
     surgeBtn: document.getElementById("surgeBtn"),
     preview: document.getElementById("actionPreview"),
@@ -102,6 +122,75 @@
     if (effect === "enemy_hit") playTone(100, "sawtooth", 0.1);
   }
 
+  // --- Particles ---
+  function spawnParticles(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+      state.particles.push({
+        x,
+        y,
+        vx: (Math.random() - 0.5) * 8,
+        vy: (Math.random() - 0.5) * 8 - 2,
+        color,
+        life: 1
+      });
+    }
+  }
+
+  // --- UI Updates ---
+  function updateUI() {
+    ui.hp.textContent = `${state.hp}/${state.maxHp}`;
+    ui.shield.textContent = state.shield;
+    ui.score.textContent = state.score;
+    ui.floor.textContent = state.floor;
+    
+    // Update HP bar
+    const hpPercent = (state.hp / state.maxHp) * 100;
+    ui.hpBar.style.width = `${hpPercent}%`;
+    
+    // Change HP bar color based on health
+    if (hpPercent <= 25) {
+      ui.hpBar.style.background = "linear-gradient(90deg, #f43f5e, #dc2626)";
+    } else if (hpPercent <= 50) {
+      ui.hpBar.style.background = "linear-gradient(90deg, #fbbf24, #f59e0b)";
+    } else {
+      ui.hpBar.style.background = "linear-gradient(90deg, #34d399, #10b981)";
+    }
+    
+    // Update floor progress
+    const floorPercent = (state.enemiesKilledOnFloor / state.enemiesNeededForFloor) * 100;
+    ui.floorBar.style.width = `${Math.min(floorPercent, 100)}%`;
+    ui.floorProgressText.textContent = `${state.enemiesKilledOnFloor}/${state.enemiesNeededForFloor} 💀`;
+    
+    // Update surge bar
+    const surgePercent = (state.surge / state.maxSurge) * 100;
+    ui.surgeBar.style.width = `${surgePercent}%`;
+    ui.surgeBtn.disabled = state.surge < state.maxSurge;
+  }
+
+  function showOverlay(type, message = "") {
+    if (!type) {
+      ui.overlay.classList.remove("open");
+      return;
+    }
+    
+    ui.overlay.classList.add("open");
+    
+    if (type === "help") {
+      ui.overlayTitle.textContent = "🐺 Wild Dot Crawler";
+      ui.overlayMsg.textContent = "";
+      document.getElementById("overlayHelp").style.display = "block";
+      document.getElementById("startBtn").textContent = "⚔️ Start Run";
+      document.getElementById("closeHelpBtn").style.display = state.turn > 0 ? "inline-block" : "none";
+    } else if (type === "gameover") {
+      ui.overlayTitle.textContent = "💀 Game Over!";
+      // Handle multiline message
+      ui.overlayMsg.innerHTML = message.replace(/\n/g, "<br>");
+      document.getElementById("overlayHelp").style.display = "none";
+      document.getElementById("startBtn").textContent = "🔄 Play Again";
+      document.getElementById("closeHelpBtn").style.display = "none";
+    }
+  }
+
   // --- Logic ---
 
   function init() {
@@ -128,11 +217,17 @@
     state.shield = 0;
     state.score = 0;
     state.turn = 0;
+    state.floor = 1;
+    state.enemiesKilledOnFloor = 0;
+    state.enemiesNeededForFloor = 5;
     state.difficulty = 1;
+    state.combo = 0;
+    state.lastMoveWasGood = false;
     state.surge = 0;
     state.selection = [];
     state.isDragging = false;
     state.particles = [];
+    state.floatingTexts = [];
     state.shake = 0;
     
     generateGrid(true);
@@ -157,14 +252,16 @@
     const r = Math.random();
     let type = TYPES.SWORD;
     
-    // Adjustable probabilities
-    if (r < 0.25) type = TYPES.SWORD;
-    else if (r < 0.45) type = TYPES.POTION;
-    else if (r < 0.65) type = TYPES.SHIELD;
+    // Adjustable probabilities - WILD is very rare (3%)
+    if (r < 0.03) type = TYPES.WILD;
+    else if (r < 0.28) type = TYPES.SWORD;
+    else if (r < 0.48) type = TYPES.POTION;
+    else if (r < 0.68) type = TYPES.SHIELD;
     else if (r < 0.85) type = TYPES.COIN;
     else type = TYPES.ENEMY;
 
-    const hp = type === TYPES.ENEMY ? Math.floor(1 + state.difficulty * 0.5 + Math.random() * 2) : 0;
+    // Enemy HP scales with floor
+    const hp = type === TYPES.ENEMY ? Math.floor(1 + state.floor * 0.3 + Math.random() * 2) : 0;
     const val = type === TYPES.ENEMY ? Math.ceil(hp / 2) : 1;
 
     return {
@@ -254,11 +351,15 @@
     if (!lastPos) return true;
     const lastTile = getTile(lastPos.x, lastPos.y);
     
+    // Same type always connects
     if (lastTile.type === tile.type) return true;
 
-    // Sword <-> Enemy mixing
-    const mixed = (t1, t2) => (t1 === TYPES.SWORD || t1 === TYPES.ENEMY) && (t2 === TYPES.SWORD || t2 === TYPES.ENEMY);
-    if (mixed(lastTile.type, tile.type)) return true;
+    // WILD tiles connect with everything!
+    if (lastTile.type === TYPES.WILD || tile.type === TYPES.WILD) return true;
+
+    // Sword <-> Enemy mixing for combat chains
+    const isCombat = (t) => t === TYPES.SWORD || t === TYPES.ENEMY;
+    if (isCombat(lastTile.type) && isCombat(tile.type)) return true;
 
     return false;
   }
@@ -303,56 +404,97 @@
     }
   }
 
+  function getChainBonus(len) {
+    if (len >= 6) return CHAIN_BONUS[6];
+    if (len >= 5) return CHAIN_BONUS[5];
+    if (len >= 4) return CHAIN_BONUS[4];
+    return 1;
+  }
+
   function analyzeSelection() {
     const sel = state.selection;
     if (sel.length === 0) return { valid: false };
     
-    let swords = 0, potions = 0, shields = 0, coins = 0, enemies = 0, enemyHpTotal = 0;
+    let swords = 0, potions = 0, shields = 0, coins = 0, enemies = 0, wilds = 0, enemyHpTotal = 0;
 
+    // Count tile types
     for (const p of sel) {
       const t = getTile(p.x, p.y);
       if (t.type === TYPES.SWORD) swords++;
-      if (t.type === TYPES.POTION) potions++;
-      if (t.type === TYPES.SHIELD) shields++;
-      if (t.type === TYPES.COIN) coins++;
-      if (t.type === TYPES.ENEMY) {
+      else if (t.type === TYPES.POTION) potions++;
+      else if (t.type === TYPES.SHIELD) shields++;
+      else if (t.type === TYPES.COIN) coins++;
+      else if (t.type === TYPES.WILD) wilds++;
+      else if (t.type === TYPES.ENEMY) {
         enemies++;
         enemyHpTotal += t.hp;
       }
     }
 
     const len = sel.length;
+    const chainBonus = getChainBonus(len);
+    const bonusText = chainBonus > 1 ? ` (${Math.round((chainBonus - 1) * 100)}% bonus!)` : "";
     let msg = "";
     
-    if (swords > 0 || enemies > 0) {
-      const dmg = swords;
-      if (dmg >= enemyHpTotal) {
-        msg = `Attack ${dmg} (Kill ${enemies})`;
+    // Determine primary action based on what we have most of (excluding enemies and wilds)
+    const counts = [
+      { type: "attack", count: swords + (enemies > 0 ? 1 : 0) },
+      { type: "heal", count: potions },
+      { type: "shield", count: shields },
+      { type: "coin", count: coins }
+    ];
+    
+    // If we have enemies in chain, prioritize attack
+    if (enemies > 0 || swords > 0) {
+      // Wilds count as swords in combat
+      const totalDmg = Math.floor((swords + wilds) * chainBonus);
+      if (totalDmg >= enemyHpTotal && enemies > 0) {
+        msg = `⚔️ ${totalDmg} dmg - Kill ${enemies}!${bonusText}`;
+      } else if (enemies > 0) {
+        msg = `⚔️ ${totalDmg} dmg${bonusText}`;
       } else {
-        msg = `Attack ${dmg} (Hit ${enemies})`;
+        msg = `⚔️ ${totalDmg} dmg (no target)`;
       }
-      return { valid: true, msg, type: "attack", dmg };
+      return { valid: enemies > 0 || swords >= 3, msg, type: "attack", dmg: totalDmg, wilds };
     }
     
     if (potions > 0) {
-      const heal = potions + Math.floor(len / 3);
-      msg = `Heal ${heal}`;
+      const heal = Math.floor((potions + wilds + Math.floor(len / 3)) * chainBonus);
+      msg = `❤️ +${heal} HP${bonusText}`;
       return { valid: true, msg, type: "heal", value: heal };
     }
     
     if (shields > 0) {
-      const armor = shields + Math.floor(len / 3);
-      msg = `Shield ${armor}`;
+      const armor = Math.floor((shields + wilds + Math.floor(len / 3)) * chainBonus);
+      msg = `🛡️ +${armor} Shield${bonusText}`;
       return { valid: true, msg, type: "shield", value: armor };
     }
     
     if (coins > 0) {
-      const val = coins * 2 + Math.floor(len / 2);
-      msg = `Collect ${val}`;
+      const val = Math.floor(((coins + wilds) * 2 + Math.floor(len / 2)) * chainBonus);
+      msg = `💰 +${val} pts${bonusText}`;
+      return { valid: true, msg, type: "coin", value: val };
+    }
+
+    // Pure wild chain - treat as coins
+    if (wilds > 0) {
+      const val = Math.floor((wilds * 3) * chainBonus);
+      msg = `✨ +${val} pts (Wild!)${bonusText}`;
       return { valid: true, msg, type: "coin", value: val };
     }
 
     return { valid: false };
+  }
+
+  // --- Floating Text ---
+  function spawnFloatingText(x, y, text, color) {
+    state.floatingTexts.push({
+      x, y,
+      text,
+      color,
+      life: 1,
+      vy: -2
+    });
   }
 
   // --- Execution ---
@@ -367,10 +509,13 @@
 
     ui.preview.classList.add("hidden");
     state.animating = true;
+    
+    const ts = getTileSize();
+    const chainLen = state.selection.length;
+    let killed = 0;
 
     if (analysis.type === "attack") {
       let remainingDmg = analysis.dmg;
-      let killed = 0;
       
       const enemiesInChain = state.selection
         .map(p => getTile(p.x, p.y))
@@ -381,28 +526,58 @@
           remainingDmg -= e.hp;
           e.dead = true;
           killed++;
+          spawnFloatingText((e.x + 0.5) * ts, (e.y + 0.5) * ts, "SLAIN!", "#ff6b6b");
         } else {
           e.hp -= remainingDmg;
+          spawnFloatingText((e.x + 0.5) * ts, (e.y + 0.5) * ts, `-${remainingDmg}`, "#ffaa00");
           remainingDmg = 0;
         }
       }
       playSound("attack");
-      state.score += killed * 10;
+      state.score += killed * 10 * state.floor;
+      
+      // Track floor progression
+      state.enemiesKilledOnFloor += killed;
+      if (state.enemiesKilledOnFloor >= state.enemiesNeededForFloor) {
+        advanceFloor();
+      }
       
     } else if (analysis.type === "heal") {
+      const healed = Math.min(analysis.value, state.maxHp - state.hp);
       state.hp = Math.min(state.hp + analysis.value, state.maxHp);
       playSound("heal");
+      if (healed > 0) {
+        spawnFloatingText(GRID_W * ts / 2, GRID_H * ts / 2, `+${healed} HP`, COLORS.potion);
+      }
     } else if (analysis.type === "shield") {
       state.shield += analysis.value;
       playSound("shield");
+      spawnFloatingText(GRID_W * ts / 2, GRID_H * ts / 2, `+${analysis.value} 🛡️`, COLORS.shield);
     } else if (analysis.type === "coin") {
       state.score += analysis.value;
       state.surge = Math.min(state.surge + analysis.value * 2, state.maxSurge);
       playSound("coin");
+      spawnFloatingText(GRID_W * ts / 2, GRID_H * ts / 2, `+${analysis.value}`, COLORS.coin);
+    }
+
+    // Chain length bonus feedback
+    if (chainLen >= 4) {
+      const bonus = getChainBonus(chainLen);
+      spawnFloatingText(GRID_W * ts / 2, 20, `${chainLen} CHAIN! x${bonus}`, "#fff");
+      state.shake = Math.min(chainLen * 2, 15);
+    }
+
+    // Combo tracking
+    if (killed > 0 || analysis.type === "heal" || analysis.type === "shield") {
+      state.combo++;
+      if (state.combo >= 3) {
+        spawnFloatingText(GRID_W * ts / 2, GRID_H * ts - 20, `${state.combo}x COMBO!`, "#ff00ff");
+      }
+    } else if (analysis.type !== "coin") {
+      state.combo = 0;
     }
 
     const toRemove = [];
-    const ts = getTileSize();
     
     for (const p of state.selection) {
       const t = getTile(p.x, p.y);
@@ -426,21 +601,46 @@
       state.grid[x] = newCol;
     }
 
-    // Enemy Retaliation
-    // All enemies on board deal 1 damage each to shield/hp
+    // Enemy Retaliation - each enemy deals 1 damage
     const allEnemies = state.grid.flat().filter(t => t.type === TYPES.ENEMY);
-    let totalEnemyDmg = allEnemies.reduce((sum, e) => sum + 1, 0);
+    let totalEnemyDmg = allEnemies.length;
     
     if (totalEnemyDmg > 0) {
-        setTimeout(() => takeDamage(totalEnemyDmg), 250);
+      setTimeout(() => takeDamage(totalEnemyDmg), 250);
     }
 
     state.selection = [];
     state.turn++;
-    state.difficulty = 1 + Math.floor(state.turn / 10);
+    state.difficulty = state.floor;
     
     updateUI();
     state.animating = false;
+  }
+
+  function advanceFloor() {
+    state.floor++;
+    state.enemiesKilledOnFloor = 0;
+    state.enemiesNeededForFloor = 5 + state.floor * 2;
+    
+    // Bonus HP on floor advance
+    state.maxHp += 2;
+    state.hp = Math.min(state.hp + 5, state.maxHp);
+    
+    playSound("surge");
+    state.shake = 15;
+    
+    const ts = getTileSize();
+    spawnFloatingText(GRID_W * ts / 2, GRID_H * ts / 2, `FLOOR ${state.floor}!`, "#22d3ee");
+    
+    // Spawn lots of particles for celebration
+    for (let i = 0; i < 30; i++) {
+      spawnParticles(
+        Math.random() * GRID_W * ts,
+        Math.random() * GRID_H * ts,
+        ["#f43f5e", "#34d399", "#3b82f6", "#fbbf24", "#a855f7"][Math.floor(Math.random() * 5)],
+        3
+      );
+    }
   }
 
   function takeDamage(amount) {
@@ -487,11 +687,15 @@
   }
 
   function gameOver() {
-    if (state.score > state.bestScore) {
+    const isNewBest = state.score > state.bestScore;
+    if (isNewBest) {
         localStorage.setItem("wildDot.best", state.score);
         state.bestScore = state.score;
     }
-    showOverlay("gameover", `Final Score: ${state.score}`);
+    
+    const bestText = isNewBest ? "🎉 NEW BEST! " : "";
+    const message = `${bestText}Score: ${state.score}\nReached Floor ${state.floor}\nTurns: ${state.turn}`;
+    showOverlay("gameover", message);
   }
 
   // --- Rendering ---
@@ -538,6 +742,7 @@
     ctx.translate(padX + sx, padY + sy);
 
     // Tiles
+    const time = Date.now() / 1000;
     for (let x = 0; x < GRID_W; x++) {
         for (let y = 0; y < GRID_H; y++) {
             const tile = state.grid[x][y];
@@ -549,7 +754,14 @@
             const m = 4;
             const size = ts - m*2;
             
-            ctx.fillStyle = isSelected ? "#fff" : COLORS[tile.type];
+            // Special rainbow effect for WILD tiles
+            if (tile.type === TYPES.WILD) {
+                const hue = (time * 100 + x * 30 + y * 30) % 360;
+                ctx.fillStyle = isSelected ? "#fff" : `hsl(${hue}, 80%, 60%)`;
+            } else {
+                ctx.fillStyle = isSelected ? "#fff" : COLORS[tile.type];
+            }
+            
             if (isSelected) ctx.globalAlpha = 0.8;
             
             ctx.beginPath();
@@ -559,6 +771,15 @@
                  ctx.rect(px + m, py + m, size, size);
             }
             ctx.fill();
+            
+            // Add glow effect for WILD tiles
+            if (tile.type === TYPES.WILD && !isSelected) {
+                ctx.shadowColor = `hsl(${(time * 100) % 360}, 100%, 50%)`;
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+            
             ctx.globalAlpha = 1;
 
             ctx.font = `${ts/2}px sans-serif`;
@@ -567,9 +788,27 @@
             ctx.fillStyle = tile.type === TYPES.ENEMY ? "#fff" : "#000";
             
             if (tile.type === TYPES.ENEMY) {
-                 ctx.fillText(`${ICONS[tile.type]}`, px + ts/2, py + ts/2 - 5);
-                 ctx.font = `bold ${ts/4}px sans-serif`;
-                 ctx.fillText(`${tile.hp}`, px + ts/2, py + ts/2 + 15);
+                 // Draw enemy with HP bar
+                 ctx.fillText(`${ICONS[tile.type]}`, px + ts/2, py + ts/2 - 8);
+                 
+                 // HP bar background
+                 const barW = size * 0.7;
+                 const barH = 6;
+                 const barX = px + m + (size - barW) / 2;
+                 const barY = py + ts - m - 12;
+                 
+                 ctx.fillStyle = "rgba(0,0,0,0.5)";
+                 ctx.fillRect(barX, barY, barW, barH);
+                 
+                 // HP bar fill
+                 const hpPercent = tile.hp / tile.maxHp;
+                 ctx.fillStyle = hpPercent > 0.5 ? "#34d399" : hpPercent > 0.25 ? "#fbbf24" : "#f43f5e";
+                 ctx.fillRect(barX, barY, barW * hpPercent, barH);
+                 
+                 // HP text
+                 ctx.font = `bold ${ts/5}px sans-serif`;
+                 ctx.fillStyle = "#fff";
+                 ctx.fillText(`${tile.hp}`, px + ts/2, barY + barH/2 + 1);
             } else {
                  ctx.fillText(ICONS[tile.type], px + ts/2, py + ts/2);
             }
@@ -611,6 +850,43 @@
         ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
+    }
+
+    // Floating texts
+    for (let i = state.floatingTexts.length - 1; i >= 0; i--) {
+        const ft = state.floatingTexts[i];
+        ft.y += ft.vy;
+        ft.life -= 0.02;
+        
+        if (ft.life <= 0) {
+            state.floatingTexts.splice(i, 1);
+            continue;
+        }
+        
+        ctx.font = "bold 18px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.globalAlpha = ft.life;
+        
+        // Text shadow
+        ctx.fillStyle = "#000";
+        ctx.fillText(ft.text, ft.x + 1, ft.y + 1);
+        
+        ctx.fillStyle = ft.color;
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.globalAlpha = 1;
+    }
+
+    // Chain length indicator while dragging
+    if (state.selection.length >= 2) {
+        const last = state.selection[state.selection.length - 1];
+        const px = last.x * ts + ts / 2;
+        const py = last.y * ts - 15;
+        
+        ctx.font = "bold 16px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = state.selection.length >= 4 ? "#fbbf24" : "#fff";
+        ctx.fillText(`${state.selection.length}`, px, py);
     }
 
     ctx.restore();

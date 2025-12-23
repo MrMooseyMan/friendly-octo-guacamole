@@ -10,15 +10,21 @@
   <main class="app" aria-label="Wild Dot Crawler">
     <header class="topbar">
       <div class="title">
-        <div class="game-name">Wild Dot Crawler</div>
-        <div class="sub">Connect runes to survive</div>
+        <div class="game-name">🐺 Wild Dot Crawler</div>
+        <div class="sub">Chain tiles • Slay enemies • Climb floors!</div>
       </div>
 
       <div class="stats" aria-label="Stats">
-        <div class="stat"><span class="k">HP</span> <span id="hpText" class="v">10/10</span></div>
-        <div class="stat"><span class="k">Shield</span> <span id="shieldText" class="v">0</span></div>
-        <div class="stat"><span class="k">Score</span> <span id="scoreText" class="v">0</span></div>
-        <div class="stat"><span class="k">Best</span> <span id="bestText" class="v">0</span></div>
+        <div class="stat hp-stat">
+          <span class="k">❤️ HP</span>
+          <div class="hp-bar-wrap">
+            <div id="hpBar" class="hp-bar" style="width: 100%"></div>
+            <span id="hpText" class="hp-text">10/10</span>
+          </div>
+        </div>
+        <div class="stat"><span class="k">🛡️</span> <span id="shieldText" class="v">0</span></div>
+        <div class="stat"><span class="k">⭐</span> <span id="scoreText" class="v">0</span></div>
+        <div class="stat floor-stat"><span class="k">🏰 Floor</span> <span id="floorText" class="v">1</span></div>
       </div>
     </header>
 
@@ -30,12 +36,20 @@
         <span id="actionText">Attack 5</span>
       </div>
 
+      <!-- Floor Progress -->
+      <div class="floor-progress">
+        <span id="floorProgressText" class="floor-progress-text">0/5 enemies</span>
+        <div class="floor-bar-bg">
+          <div id="floorBar" class="floor-bar-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
       <!-- Surge UI -->
       <div class="surge-container">
         <div class="surge-bar-bg">
           <div id="surgeBar" class="surge-bar-fill" style="width: 0%"></div>
         </div>
-        <button id="surgeBtn" class="btn surge-btn" disabled>CAST SURGE!</button>
+        <button id="surgeBtn" class="btn surge-btn" disabled>⚡ SURGE!</button>
       </div>
 
       <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Help">
@@ -43,19 +57,20 @@
           <h1 id="overlayTitle">How to play</h1>
           <p id="overlayMessage" class="overlayMsg"></p>
           <ul id="overlayHelp">
-            <li><b>Connect</b> matching runes by dragging.</li>
-            <li><span class="sw s-sword"></span> <b>Sword</b>: Connect to enemies to damage them.</li>
-            <li><span class="sw s-potion"></span> <b>Potion</b>: Heal HP.</li>
-            <li><span class="sw s-shield"></span> <b>Shield</b>: Gain armor against attacks.</li>
-            <li><span class="sw s-coin"></span> <b>Coin</b>: Earn points & charge Surge.</li>
-            <li><span class="sw s-enemy"></span> <b>Enemy</b>: Attack you if not killed!</li>
-            <li><b>Wild Surge</b>: Fill the bar to unleash a powerful clear!</li>
+            <li><b>🎯 Goal:</b> Survive floors by killing enemies!</li>
+            <li><span class="sw s-sword"></span> <b>Sword ⚔️</b>: Chain with enemies to attack them.</li>
+            <li><span class="sw s-potion"></span> <b>Heart ❤️</b>: Restore your HP.</li>
+            <li><span class="sw s-shield"></span> <b>Shield 🛡️</b>: Block incoming damage.</li>
+            <li><span class="sw s-coin"></span> <b>Gold 💰</b>: Score points & charge Surge.</li>
+            <li><span class="sw s-enemy"></span> <b>Skull 💀</b>: Enemies attack you each turn!</li>
+            <li><span class="sw s-wild"></span> <b>Wild ✨</b>: Matches anything! (Rare)</li>
+            <li>🔥 <b>Longer chains = bigger bonuses!</b></li>
           </ul>
           <div class="row">
             <button id="startBtn" class="btn primary">Start Run</button>
             <button id="closeHelpBtn" class="btn">Close</button>
           </div>
-          <p class="hint">Tip: Long chains give bonuses!</p>
+          <p class="hint">💡 4+ tiles = 25% bonus • 5+ = 50% • 6+ = 100%!</p>
         </div>
       </div>
     </section>
