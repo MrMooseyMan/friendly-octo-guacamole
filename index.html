@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🥑 friendly-octo-guacamole</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent-green: #3fb950;
+            --accent-blue: #58a6ff;
+            --accent-purple: #a371f7;
+            --accent-orange: #f0883e;
+            --accent-pink: #db61a2;
+            --border-color: #30363d;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 2rem 0 3rem;
+        }
+
+        .header-emoji {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+            font-weight: 500;
+        }
+
+        .badge-playable {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--accent-green);
+            border: 1px solid rgba(63, 185, 80, 0.3);
+        }
+
+        .badge-server {
+            background: rgba(240, 136, 62, 0.15);
+            color: var(--accent-orange);
+            border: 1px solid rgba(240, 136, 62, 0.3);
+        }
+
+        /* Project Cards */
+        .projects {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .project-card {
+            display: block;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .project-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .project-card:active {
+            transform: translateY(0);
+        }
+
+        .project-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .project-icon {
+            font-size: 2rem;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+        }
+
+        .project-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .project-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
+        }
+
+        .project-meta {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            color: var(--text-secondary);
+        }
+
+        .play-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--accent-green);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .play-indicator svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Server Required Card */
+        .project-card.server-required {
+            opacity: 0.7;
+        }
+
+        .project-card.server-required .play-indicator {
+            color: var(--accent-orange);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 2rem;
+        }
+
+        .info-box h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .info-box p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .info-box code {
+            background: var(--bg-tertiary);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (min-width: 600px) {
+            body {
+                padding: 2rem;
+            }
+
+            .header {
+                padding: 3rem 0 4rem;
+            }
+
+            .header h1 {
+                font-size: 2.25rem;
+            }
+
+            .projects {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-emoji">🥑</div>
+            <h1>friendly-octo-guacamole</h1>
+            <p>My personal playground. Random projects, experiments, and ideas built from the couch.</p>
+        </header>
+
+        <!-- Playable Projects -->
+        <section class="section">
+            <div class="section-header">
+                <h2>🎮 Playable Now</h2>
+                <span class="badge badge-playable">Tap to Play</span>
+            </div>
+            <div class="projects">
+                <a href="websites/doodleplay/index.html" class="project-card">
+                    <div class="project-header">
+                        <div class="project-icon">🎨</div>
+                        <div class="project-title">DoodlePlay</div>
+                    </div>
+                    <p class="project-desc">
+                        Turn kids' drawings into playable games. Upload any drawing, pick a game type, and watch it come alive!
+                    </p>
+                    <div class="project-meta">
+                        <span class="tag">HTML/CSS/JS</span>
+                        <span class="tag">Interactive</span>
+                        <span class="tag">Canvas Games</span>
+                    </div>
+                    <div class="play-indicator">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        Play Now
+                    </div>
+                </a>
+
+                <a href="websites/fireworks/index.html" class="project-card">
+                    <div class="project-header">
+                        <div class="project-icon">🎆</div>
+                        <div class="project-title">Firework Simulator</div>
+                    </div>
+                    <p class="project-desc">
+                        Tap anywhere to launch beautiful fireworks. A satisfying interactive canvas experience.
+                    </p>
+                    <div class="project-meta">
+                        <span class="tag">HTML/CSS/JS</span>
+                        <span class="tag">Canvas</span>
+                        <span class="tag">Touch-friendly</span>
+                    </div>
+                    <div class="play-indicator">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        Play Now
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Server Required -->
+        <section class="section">
+            <div class="section-header">
+                <h2>🖥️ Needs a Server</h2>
+                <span class="badge badge-server">Run Locally</span>
+            </div>
+            <div class="projects">
+                <div class="project-card server-required">
+                    <div class="project-header">
+                        <div class="project-icon">🥑</div>
+                        <div class="project-title">Nutrition Mon</div>
+                    </div>
+                    <p class="project-desc">
+                        Scan barcode nutrition labels and generate unique creatures with stats based on the food's nutritional value!
+                    </p>
+                    <div class="project-meta">
+                        <span class="tag">Python</span>
+                        <span class="tag">Flask</span>
+                        <span class="tag">OpenFoodFacts API</span>
+                    </div>
+                    <div class="play-indicator">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        Requires: python app.py
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <h3>📱 Playing from Cursor Mobile?</h3>
+            <p>
+                This page is served via <strong>GitHub Pages</strong>. Any static web projects you push will be instantly playable at this URL. For Python/Node apps, spin up a <a href="https://github.com/codespaces">GitHub Codespace</a> and access the forwarded port URL from your phone's browser.
+            </p>
+        </div>
+
+        <footer class="footer">
+            <p>Built with boredom and ☕ · <a href="https://github.com/MrMooseyMan/friendly-octo-guacamole">View on GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>
