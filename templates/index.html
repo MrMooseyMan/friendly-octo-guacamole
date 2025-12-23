@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrition Creature Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button.random-btn {
+            background-color: #3498db;
+        }
+        button.random-btn:hover {
+            background-color: #2980b9;
+        }
+        .error {
+            color: #e74c3c;
+            margin-bottom: 1rem;
+        }
+        .creature-card {
+            border: 1px solid #eee;
+            border-radius: 15px;
+            padding: 20px;
+            background: linear-gradient(145deg, #ffffff, #f9f9f9);
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .creature-image {
+            width: 200px;
+            height: 200px;
+            background-color: #eee;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            overflow: hidden;
+            border: 4px solid #333;
+        }
+        .creature-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .creature-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        .creature-type {
+            display: inline-block;
+            padding: 5px 15px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            text-align: left;
+            margin-top: 15px;
+        }
+        .stat-item {
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .stat-label {
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        .stat-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .description {
+            margin-top: 20px;
+            color: #666;
+            font-style: italic;
+            line-height: 1.5;
+        }
+        .demo-barcodes {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #888;
+        }
+        .demo-link {
+            color: #3498db;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🥦 Nutrition Creature Scanner 🥩</h1>
+        <p>Enter a barcode from your fridge/pantry to generate a creature!</p>
+        
+        <form method="POST" class="search-box">
+            <input type="text" name="barcode" id="barcodeInput" placeholder="Enter Barcode (e.g. 5449000000996)" value="{{ barcode }}">
+            <button type="submit">Scan</button>
+            <button type="button" class="random-btn" onclick="randomBarcode()">Random</button>
+        </form>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        {% if creature %}
+            <div class="creature-card">
+                <div class="creature-image">
+                    <img src="{{ creature.image_url }}" alt="{{ creature.name }}">
+                </div>
+                <div class="creature-name">{{ creature.name }}</div>
+                <div class="creature-type">{{ creature.type }}</div>
+                
+                <div class="stats-grid">
+                    {% for stat, value in creature.stats.items() %}
+                        <div class="stat-item">
+                            <span class="stat-label">{{ stat }}</span>
+                            <span class="stat-value">{{ value }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="description">
+                    {{ creature.description }}
+                </div>
+            </div>
+        {% else %}
+            <div class="demo-barcodes">
+                Try these demo barcodes:<br>
+                <span class="demo-link" onclick="fill('5449000000996')">Coca-Cola (5449000000996)</span> | 
+                <span class="demo-link" onclick="fill('3017620422003')">Nutella (3017620422003)</span> | 
+                <span class="demo-link" onclick="fill('8000500003787')">Kinder Bueno (8000500003787)</span>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function fill(code) {
+            document.getElementById('barcodeInput').value = code;
+        }
+        
+        function randomBarcode() {
+            const barcodes = [
+                '5449000000996', // Coke
+                '3017620422003', // Nutella
+                '8000500003787', // Kinder Bueno
+                '5000127150772', // Oats
+                '8715700423913', // Heinz Ketchup
+                '7613036302450', // Nesquik
+                '5060337500366', // Innocent Smoothie
+                '3274080005003', // Evian Water
+                '5053827188729', // Pringles
+                '7311311017369'  // Marabou Chocolate
+            ];
+            const random = barcodes[Math.floor(Math.random() * barcodes.length)];
+            fill(random);
+        }
+    </script>
+</body>
+</html>
