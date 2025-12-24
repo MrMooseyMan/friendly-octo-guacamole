@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Do Not Disturb</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app" class="available">
+        <!-- Settings Button -->
+        <button id="settings-btn" class="settings-btn" aria-label="Settings">⚙️</button>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Status Display -->
+            <div class="status-display">
+                <h1 id="user-name">Jamie</h1>
+                <div id="status-indicator" class="status-indicator"></div>
+                <p id="status-text" class="status-text">Available</p>
+            </div>
+            
+            <!-- Status Message (shown when dark) -->
+            <div id="dark-message" class="dark-message hidden">
+                <div class="alive-badge">✓ I am alive and well</div>
+                <p class="dark-explanation">I am currently disconnected and taking a break. I will get back to you when I return.</p>
+                
+                <div class="emergency-section">
+                    <h3>🚨 Emergency Contact</h3>
+                    <p id="emergency-contact">Call 911 or contact a family member</p>
+                </div>
+                
+                <div class="leave-message-section">
+                    <h3>📝 Leave a Message</h3>
+                    <textarea id="message-input" placeholder="Type your message here... It will be saved for when they return."></textarea>
+                    <button id="submit-message" class="submit-btn">Save Message</button>
+                </div>
+            </div>
+            
+            <!-- Available Message -->
+            <div id="available-message" class="available-message">
+                <p>Feel free to reach out! 💬</p>
+            </div>
+            
+            <!-- Toggle Button -->
+            <button id="toggle-btn" class="toggle-btn">
+                <span id="toggle-text">Go Dark</span>
+            </button>
+            
+            <!-- Message Vault (only visible when available) -->
+            <div id="vault-section" class="vault-section">
+                <button id="vault-toggle" class="vault-toggle">
+                    📨 Message Vault <span id="vault-count">(0)</span>
+                </button>
+                <div id="vault-contents" class="vault-contents hidden">
+                    <div id="messages-list" class="messages-list">
+                        <p class="no-messages">No messages yet</p>
+                    </div>
+                    <button id="clear-vault" class="clear-vault-btn hidden">Clear All Messages</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>⚙️ Settings</h2>
+                <div class="form-group">
+                    <label for="name-input">Your Name</label>
+                    <input type="text" id="name-input" placeholder="Jamie">
+                </div>
+                <div class="form-group">
+                    <label for="emergency-input">Emergency Contact Info</label>
+                    <textarea id="emergency-input" placeholder="Call 911 or contact a family member"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button id="save-settings" class="save-btn">Save</button>
+                    <button id="cancel-settings" class="cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
