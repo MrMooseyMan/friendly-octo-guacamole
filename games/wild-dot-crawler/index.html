@@ -1,127 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Wild Dot Crawler</title>
-  <link rel="stylesheet" href="./style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wild-Dot Crawler v2.1</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Tone.js for simple audio feedback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 </head>
-<body>
-  <main class="app" aria-label="Wild Dot Crawler">
-    <header class="topbar">
-      <div class="title">
-        <div class="game-name">🐺 Wild Dot Crawler</div>
-        <div class="sub">Chain tiles • Slay monsters • Climb floors!</div>
-      </div>
+<body class="bg-slate-900 text-gray-200 min-h-screen p-4 overflow-hidden select-none">
 
-      <div class="stats" aria-label="Stats">
-        <div class="stat hp-stat">
-          <span class="k">❤️ HP</span>
-          <div class="hp-bar-wrap">
-            <div id="hpBar" class="hp-bar" style="width: 100%"></div>
-            <span id="hpText" class="hp-text">10/10</span>
-          </div>
+    <div id="game-container" class="max-w-md mx-auto flex flex-col h-[95vh]">
+        
+        <!-- === DUNGEON VIEW === -->
+        <div class="p-3 bg-slate-800 rounded-2xl shadow-xl mb-3 border border-slate-700 shrink-0">
+            
+            <!-- Enemy -->
+            <div id="enemy-section" class="flex items-center gap-3 mb-3">
+                <div id="enemy-portrait-container" class="portrait-container">
+                    <!-- Enemy SVG goes here -->
+                </div>
+                <div id="enemy-stats" class="flex-1 transition-all duration-300">
+                    <div class="flex justify-between items-end">
+                        <h2 id="enemy-name" class="text-xl font-fantasy font-bold text-rose-400">Gloom-cap</h2>
+                        <p id="enemy-level" class="text-xs text-gray-400">Lvl 1</p>
+                    </div>
+                    <div class="hp-bar-bg h-4 w-full mt-1 relative">
+                        <div id="enemy-hp-bar" class="hp-bar hp-bar-enemy" style="width: 100%;"></div>
+                        <span id="enemy-hp-text" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white shadow-black drop-shadow-md"></span>
+                    </div>
+                    <div id="enemy-status" class="h-4 mt-1 text-xs text-violet-400 flex justify-between">
+                        <span id="enemy-action">Attacks next turn</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Player -->
+            <div id="player-section" class="flex items-center gap-3">
+                <div id="player-portrait-container" class="portrait-container">
+                    <!-- Player SVG goes here -->
+                </div>
+                <div id="player-stats" class="flex-1">
+                    <div class="flex justify-between items-end">
+                        <h2 class="text-lg font-fantasy font-bold text-emerald-400">Warden</h2>
+                        <p id="player-level" class="text-xs text-gray-400">Lvl 1</p>
+                    </div>
+                    <!-- HP -->
+                    <div class="hp-bar-bg h-4 w-full mt-1 relative">
+                        <div id="player-hp-bar" class="hp-bar hp-bar-player" style="width: 100%;"></div>
+                        <span id="player-hp-text-overlay" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md">20 / 20</span>
+                    </div>
+                    <div class="flex justify-between text-xs px-1 mt-0.5">
+                        <span id="player-shield-text" class="text-amber-400 font-bold"></span>
+                    </div>
+                    <!-- Special -->
+                    <div class="hp-bar-bg h-2 w-full mt-1">
+                        <div id="player-special-bar" class="hp-bar hp-bar-special" style="width: 0%;"></div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                         <span id="player-special-text" class="text-xs text-sky-400">Wild Surge: 0/10</span>
+                         <button id="surge-btn" class="hidden bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow animate-pulse">ACTIVATE</button>
+                    </div>
+                   
+                </div>
+            </div>
+            
         </div>
-        <div class="stat"><span class="k">🛡️</span> <span id="shieldText" class="v">0</span></div>
-        <div class="stat"><span class="k">⭐</span> <span id="scoreText" class="v">0</span></div>
-        <div class="stat floor-stat"><span class="k">🏰 Floor</span> <span id="floorText" class="v">1</span></div>
-      </div>
-    </header>
+        
+        <!-- === GAME STATUS === -->
+        <div class="text-center mb-2 h-8 flex justify-between items-center px-2 shrink-0">
+            <h3 id="turn-status-text" class="text-lg font-bold text-amber-400">Your Turn: 3</h3>
+            <h3 id="combo-text" class="text-lg font-bold text-gray-300 opacity-0 transition-opacity">Combo: <span id="combo-value" class="text-amber-300">x1.0</span></h3>
+        </div>
 
-    <!-- Turn Phase Banner -->
-    <div id="turnBanner" class="turn-banner hidden">
-      <span id="turnText">Your Turn</span>
+        <!-- === GAME BOARD === -->
+        <div id="game-board-container" class="flex-grow bg-slate-800 rounded-2xl shadow-xl p-3 border border-slate-700 relative overflow-hidden">
+            <svg id="connector-svg"></svg>
+            <div id="game-board" class="game-board h-full w-full" style="--grid-size: 6;">
+                <!-- Runes will be generated here by JS -->
+            </div>
+            <!-- Floating damage text -->
+            <div id="floating-text-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+        </div>
+
     </div>
 
-    <section class="boardWrap">
-      <!-- Combat Log (inside boardWrap for proper positioning) -->
-      <div id="combatLog" class="combat-log">
-        <div id="combatLogContent" class="combat-log-content"></div>
-      </div>
-      <canvas id="game" width="640" height="640" aria-label="Game board"></canvas>
-      
-      <!-- Action Preview Tooltip -->
-      <div id="actionPreview" class="action-preview hidden">
-        <span id="actionText">Attack 5</span>
-      </div>
-
-      <!-- Floor Progress -->
-      <div class="floor-progress">
-        <span id="floorProgressText" class="floor-progress-text">0/5 slain</span>
-        <div class="floor-bar-bg">
-          <div id="floorBar" class="floor-bar-fill" style="width: 0%"></div>
+    <!-- === VICTORY MODAL === -->
+    <div id="modal" class="modal-backdrop">
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-8 max-w-sm w-full text-center border-2 border-slate-700">
+            <h2 id="modal-title" class="text-3xl font-fantasy font-bold mb-4">Victory!</h2>
+            <p id="modal-text" class="text-lg mb-6">You defeated the Gloom-cap.</p>
+            <button id="modal-button" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
+                Next Battle
+            </button>
         </div>
-      </div>
-      
-      <!-- Monster Info Panel -->
-      <div id="monsterInfo" class="monster-info hidden">
-        <span id="monsterIcon" class="monster-icon">🐀</span>
-        <div class="monster-details">
-          <span id="monsterName" class="monster-name">Slime</span>
-          <span id="monsterHp" class="monster-hp">HP: 3/3</span>
+    </div>
+    
+    <!-- === GAME OVER MODAL === -->
+    <div id="gameover-modal" class="modal-backdrop">
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-8 max-w-sm w-full text-center border-2 border-rose-900">
+            <h2 class="text-3xl font-fantasy font-bold mb-4 text-rose-500">Defeated</h2>
+            <p id="gameover-text" class="text-lg mb-6 text-gray-300">Your journey ends here.</p>
+            <button id="restart-button" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
+                Try Again
+            </button>
         </div>
-      </div>
-
-      <!-- Threat Indicator -->
-      <div id="threatIndicator" class="threat-indicator">
-        <span class="threat-label">⚠️ Threat:</span>
-        <span id="threatCount" class="threat-count">0</span>
-        <span class="threat-dmg">dmg/turn</span>
-      </div>
-
-      <!-- Surge UI -->
-      <div class="surge-container">
-        <div class="surge-bar-bg">
-          <div id="surgeBar" class="surge-bar-fill" style="width: 0%"></div>
+    </div>
+    
+    <!-- === UPGRADE MODAL (Level Up) === -->
+    <div id="upgrade-modal" class="modal-backdrop">
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-amber-500">
+            <h2 class="text-2xl font-fantasy font-bold mb-2 text-amber-400">Level Up!</h2>
+            <p class="text-sm mb-4 text-gray-400">Choose an upgrade:</p>
+            <div class="space-y-3">
+                <button data-upgrade="hp" class="upgrade-choice w-full bg-emerald-900/50 hover:bg-emerald-800 border border-emerald-500/50 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg flex flex-col items-center group">
+                    <strong class="font-fantasy text-emerald-400 group-hover:text-emerald-300">Primal Vigor</strong>
+                    <span class="text-xs text-gray-300">+5 Max HP & Full Heal</span>
+                </button>
+                <button data-upgrade="attack" class="upgrade-choice w-full bg-rose-900/50 hover:bg-rose-800 border border-rose-500/50 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg flex flex-col items-center group">
+                    <strong class="font-fantasy text-rose-400 group-hover:text-rose-300">Sharpened Claws</strong>
+                    <span class="text-xs text-gray-300">+1 Base Damage</span>
+                </button>
+                <button data-upgrade="special" class="upgrade-choice w-full bg-sky-900/50 hover:bg-sky-800 border border-sky-500/50 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg flex flex-col items-center group">
+                    <strong class="font-fantasy text-sky-400 group-hover:text-sky-300">Wild Attunement</strong>
+                    <span class="text-xs text-gray-300">Charge Surge Faster</span>
+                </button>
+            </div>
         </div>
-        <button id="surgeBtn" class="btn surge-btn" disabled>⚡ SURGE!</button>
-      </div>
+    </div>
 
-      <div id="overlay" class="overlay" role="dialog" aria-modal="true" aria-label="Help">
-        <div class="card">
-          <h1 id="overlayTitle">How to play</h1>
-          <p id="overlayMessage" class="overlayMsg"></p>
-          <ul id="overlayHelp">
-            <li class="help-section"><b>⚔️ THE BATTLE</b></li>
-            <li>You're a dungeon crawler! <b>Monsters</b> appear on the board - Slimes, Goblins, Wraiths and more!</li>
-            <li>Each turn: <b>YOU act first</b>, then <b>ALL monsters attack you</b> for 1 damage each!</li>
-            <li>Kill 5+ monsters per floor to advance deeper into the dungeon.</li>
-            
-            <li class="help-section"><b>🎮 HOW TO FIGHT</b></li>
-            <li><span class="sw s-sword"></span> <b>Sword ⚔️</b>: Drag a chain of swords INTO a monster to attack it!</li>
-            <li><span class="sw s-potion"></span> <b>Heart ❤️</b>: Chain 3+ hearts to heal yourself.</li>
-            <li><span class="sw s-shield"></span> <b>Shield 🛡️</b>: Chain 3+ shields to block monster attacks.</li>
-            <li><span class="sw s-coin"></span> <b>Gold 💰</b>: Chain 3+ coins for points & charge your Surge power.</li>
-            <li><span class="sw s-wild"></span> <b>Wild ✨</b>: Rare! Matches with anything for big combos!</li>
-            
-            <li class="help-section"><b>💡 TIPS</b></li>
-            <li>🔥 <b>Longer chains = bigger bonuses!</b> (4+ tiles = 25%, 5+ = 50%, 6+ = 100%!)</li>
-            <li>⚡ <b>Surge Power:</b> When full, transmutes ALL monsters into gold!</li>
-          </ul>
-          <div class="row">
-            <button id="startBtn" class="btn primary">Start Run</button>
-            <button id="closeHelpBtn" class="btn">Close</button>
-          </div>
-          <p class="hint">💀 Watch out! Every monster on the board attacks after your turn!</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="controls" aria-label="Controls">
-      <div class="buttons">
-        <button id="newBtn" class="btn">New Run</button>
-        <button id="helpBtn" class="btn">Help (?)</button>
-      </div>
-      <!-- Log removed or simplified? Let's keep a small log if needed, or remove it for cleanliness. 
-           The prompt mentions "easier to understand", visuals are better than logs. 
-           I'll keep a minimal log but maybe hide it or style it smaller.
-           Actually, let's keep it but make it small. -->
-      <div class="log" style="display:none;"> <!-- Hidden by default, maybe use for debugging or critical info -->
-        <div id="log" class="logBody"></div>
-      </div>
-    </section>
-  </main>
-
-  <script src="./game.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>
