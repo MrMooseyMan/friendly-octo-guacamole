@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wild-Dot Crawler v2.1</title>
+    <title>Wild-Dot Crawler</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -13,12 +13,21 @@
     <!-- Tone.js for simple audio feedback -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 </head>
-<body class="bg-slate-900 text-gray-200 min-h-screen p-4 overflow-hidden select-none">
+<body class="bg-slate-900 text-gray-200 min-h-screen p-2 overflow-hidden select-none">
 
-    <div id="game-container" class="max-w-md mx-auto flex flex-col h-[95vh]">
+    <div id="game-container" class="max-w-md mx-auto flex flex-col h-[98vh]">
+        
+        <!-- === FLOOR HEADER === -->
+        <div class="flex justify-between items-center mb-2 px-2 shrink-0">
+            <div id="floor-display" class="text-lg font-fantasy font-bold text-slate-300">Floor 1</div>
+            <div class="flex gap-3 text-sm">
+                <span id="player-gold" class="text-amber-400 font-bold">💰 0</span>
+                <span id="player-potions" class="text-emerald-400 font-bold">🧪 1</span>
+            </div>
+        </div>
         
         <!-- === DUNGEON VIEW === -->
-        <div class="p-3 bg-slate-800 rounded-2xl shadow-xl mb-3 border border-slate-700 shrink-0">
+        <div class="p-3 bg-slate-800 rounded-2xl shadow-xl mb-2 border border-slate-700 shrink-0">
             
             <!-- Enemy -->
             <div id="enemy-section" class="flex items-center gap-3 mb-3">
@@ -30,11 +39,11 @@
                         <h2 id="enemy-name" class="text-xl font-fantasy font-bold text-rose-400">Gloom-cap</h2>
                         <p id="enemy-level" class="text-xs text-gray-400">Lvl 1</p>
                     </div>
-                    <div class="hp-bar-bg h-4 w-full mt-1 relative">
+                    <div class="hp-bar-bg h-5 w-full mt-1 relative">
                         <div id="enemy-hp-bar" class="hp-bar hp-bar-enemy" style="width: 100%;"></div>
-                        <span id="enemy-hp-text" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white shadow-black drop-shadow-md"></span>
+                        <span id="enemy-hp-text" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white shadow-black drop-shadow-md"></span>
                     </div>
-                    <div id="enemy-status" class="h-4 mt-1 text-xs text-violet-400 flex justify-between">
+                    <div id="enemy-status" class="h-5 mt-1 text-xs text-violet-400 flex justify-between items-center">
                         <span id="enemy-action">Attacks next turn</span>
                     </div>
                 </div>
@@ -42,7 +51,7 @@
             
             <!-- Player -->
             <div id="player-section" class="flex items-center gap-3">
-                <div id="player-portrait-container" class="portrait-container">
+                <div id="player-portrait-container" class="portrait-container player-portrait">
                     <!-- Player SVG goes here -->
                 </div>
                 <div id="player-stats" class="flex-1">
@@ -51,22 +60,24 @@
                         <p id="player-level" class="text-xs text-gray-400">Lvl 1</p>
                     </div>
                     <!-- HP -->
-                    <div class="hp-bar-bg h-4 w-full mt-1 relative">
+                    <div class="hp-bar-bg h-5 w-full mt-1 relative">
                         <div id="player-hp-bar" class="hp-bar hp-bar-player" style="width: 100%;"></div>
-                        <span id="player-hp-text-overlay" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md">20 / 20</span>
+                        <span id="player-hp-text-overlay" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow-md">25 / 25</span>
                     </div>
                     <div class="flex justify-between text-xs px-1 mt-0.5">
                         <span id="player-shield-text" class="text-amber-400 font-bold"></span>
                     </div>
                     <!-- Special -->
-                    <div class="hp-bar-bg h-2 w-full mt-1">
+                    <div class="hp-bar-bg h-3 w-full mt-1">
                         <div id="player-special-bar" class="hp-bar hp-bar-special" style="width: 0%;"></div>
                     </div>
-                    <div class="flex justify-between items-center">
-                         <span id="player-special-text" class="text-xs text-sky-400">Wild Surge: 0/10</span>
-                         <button id="surge-btn" class="hidden bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow animate-pulse">ACTIVATE</button>
+                    <div class="flex justify-between items-center gap-2 mt-1">
+                        <span id="player-special-text" class="text-xs text-sky-400">Wild Surge: 0/10</span>
+                        <div class="flex gap-1">
+                            <button id="potion-btn" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow transition-colors">🧪 HEAL</button>
+                            <button id="surge-btn" class="hidden bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow animate-pulse">⚡ SURGE</button>
+                        </div>
                     </div>
-                   
                 </div>
             </div>
             
@@ -87,48 +98,64 @@
             <!-- Floating damage text -->
             <div id="floating-text-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
         </div>
+        
+        <!-- === RUNE LEGEND === -->
+        <div class="mt-2 px-2 flex justify-center gap-3 text-[10px] text-slate-400 shrink-0 flex-wrap">
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-rose-500"></span>ATK</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-500"></span>HEAL</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-sky-500"></span>SURGE</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-500"></span>SHIELD</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-violet-400"></span>POISON</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-slate-100"></span>GOLD</span>
+        </div>
 
     </div>
 
     <!-- === VICTORY MODAL === -->
     <div id="modal" class="modal-backdrop">
-        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-8 max-w-sm w-full text-center border-2 border-slate-700">
-            <h2 id="modal-title" class="text-3xl font-fantasy font-bold mb-4">Victory!</h2>
-            <p id="modal-text" class="text-lg mb-6">You defeated the Gloom-cap.</p>
-            <button id="modal-button" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
-                Next Battle
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-emerald-700">
+            <h2 id="modal-title" class="text-3xl font-fantasy font-bold mb-2 text-emerald-400">Victory!</h2>
+            <p id="modal-text" class="text-lg mb-3 text-slate-300">You defeated the Gloom-cap.</p>
+            <div id="modal-loot" class="mb-4">
+                <!-- Loot rewards appear here -->
+            </div>
+            <button id="modal-button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
+                Continue Deeper →
             </button>
         </div>
     </div>
     
     <!-- === GAME OVER MODAL === -->
     <div id="gameover-modal" class="modal-backdrop">
-        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-8 max-w-sm w-full text-center border-2 border-rose-900">
-            <h2 class="text-3xl font-fantasy font-bold mb-4 text-rose-500">Defeated</h2>
-            <p id="gameover-text" class="text-lg mb-6 text-gray-300">Your journey ends here.</p>
-            <button id="restart-button" class="bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
-                Try Again
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-rose-900">
+            <h2 class="text-3xl font-fantasy font-bold mb-2 text-rose-500">☠️ Defeated</h2>
+            <p id="gameover-text" class="text-md mb-4 text-gray-300">Your journey ends here...</p>
+            <div id="gameover-stats" class="text-left text-sm mb-4 bg-slate-900 rounded-lg p-3">
+                <!-- Stats appear here -->
+            </div>
+            <button id="restart-button" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
+                🗡️ Try Again
             </button>
         </div>
     </div>
     
     <!-- === UPGRADE MODAL (Level Up) === -->
     <div id="upgrade-modal" class="modal-backdrop">
-        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-amber-500">
-            <h2 class="text-2xl font-fantasy font-bold mb-2 text-amber-400">Level Up!</h2>
-            <p class="text-sm mb-4 text-gray-400">Choose an upgrade:</p>
-            <div class="space-y-3">
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-5 max-w-sm w-full text-center border-2 border-amber-500">
+            <h2 class="text-2xl font-fantasy font-bold mb-1 text-amber-400">⬆️ Level Up!</h2>
+            <p class="text-sm mb-3 text-gray-400">Choose your path:</p>
+            <div class="space-y-2">
                 <button data-upgrade="hp" class="upgrade-choice w-full bg-emerald-900/50 hover:bg-emerald-800 border border-emerald-500/50 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg flex flex-col items-center group">
-                    <strong class="font-fantasy text-emerald-400 group-hover:text-emerald-300">Primal Vigor</strong>
-                    <span class="text-xs text-gray-300">+5 Max HP & Full Heal</span>
+                    <strong class="font-fantasy text-emerald-400 group-hover:text-emerald-300">💚 Primal Vigor</strong>
+                    <span class="text-xs text-gray-300">+8 Max HP & Full Heal</span>
                 </button>
                 <button data-upgrade="attack" class="upgrade-choice w-full bg-rose-900/50 hover:bg-rose-800 border border-rose-500/50 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg flex flex-col items-center group">
-                    <strong class="font-fantasy text-rose-400 group-hover:text-rose-300">Sharpened Claws</strong>
-                    <span class="text-xs text-gray-300">+1 Base Damage</span>
+                    <strong class="font-fantasy text-rose-400 group-hover:text-rose-300">⚔️ Sharpened Claws</strong>
+                    <span class="text-xs text-gray-300">+1 Damage & +5% Crit</span>
                 </button>
                 <button data-upgrade="special" class="upgrade-choice w-full bg-sky-900/50 hover:bg-sky-800 border border-sky-500/50 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg flex flex-col items-center group">
-                    <strong class="font-fantasy text-sky-400 group-hover:text-sky-300">Wild Attunement</strong>
-                    <span class="text-xs text-gray-300">Charge Surge Faster</span>
+                    <strong class="font-fantasy text-sky-400 group-hover:text-sky-300">⚡ Wild Attunement</strong>
+                    <span class="text-xs text-gray-300">Charge Surge Much Faster</span>
                 </button>
             </div>
         </div>
