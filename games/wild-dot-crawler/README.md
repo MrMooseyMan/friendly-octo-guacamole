@@ -1,53 +1,98 @@
-# 🐺 Wild Dot Crawler
+# Wild-Dot Crawler 🐉
 
-A match-3 puzzle RPG dungeon crawler! Chain tiles to attack enemies, heal, and climb floors.
+A rewarding dungeon crawler match-3 game! Connect runes to fight monsters, gain loot, and delve deeper into the dungeon.
 
 ## 🎮 How to Play
 
-**Drag to connect matching tiles** in chains of 3 or more:
+**Goal:** Descend through dungeon floors, defeating enemies and bosses while growing stronger.
 
-| Tile | Action |
-|------|--------|
-| ⚔️ Sword | Chain with 💀 enemies to attack them |
-| ❤️ Heart | Restore HP |
-| 🛡️ Shield | Block incoming damage |
-| 💰 Gold | Score points & charge your Surge |
-| 💀 Skull | Enemies - attack you each turn! |
-| ✨ Wild | Rare! Matches with ANY tile type |
+### Controls
+- **Drag** across runes to connect 3+ of the same color
+- **Diagonal connections** are allowed
+- **White runes** act as wildcards and can connect to any color
 
-## 🔥 Chain Bonuses
+### Rune Types
+| Rune | Color | Effect |
+|------|-------|--------|
+| ⚔️ Claw | Red | Deal damage to enemy |
+| 💚 Leaf | Green | Heal yourself |
+| ⚡ Mind | Blue | Charge Wild Surge |
+| 🛡️ Shield | Yellow | Gain shield (blocks damage) |
+| ☠️ Fang | Purple | Deal bonus damage |
+| ⭐ Sun Shard | White | Earn gold & XP (wildcard) |
 
-Longer chains = more power!
-- **4 tiles**: +25% bonus
-- **5 tiles**: +50% bonus  
-- **6+ tiles**: +100% bonus!
+### Combat System
+- You get **3 moves per turn**
+- After your moves, the enemy attacks
+- Shield absorbs damage before HP
+- Defeat enemies to earn **gold, XP, and potions**
 
-## 🏰 Floor System
+### Progression
+- **Floors**: Progress through increasingly difficult floors
+- **Level Up**: Gain XP to level up and choose powerful upgrades
+- **Boss Fights**: Every 5 floors, face a powerful boss with unique abilities
+- **Gold**: Earn gold from kills to track your riches
+- **Potions**: Earn potions from battles, use them to heal and cleanse status effects
 
-- Kill enemies to advance floors
-- Each floor gets harder but you gain +2 max HP and heal +5
-- How high can you climb?
+### Special Abilities
+- **Wild Surge**: Charge by matching blue runes. When full, unleash massive damage + heal + shield!
+- **Potions**: Use potions during your turn to restore 40% HP and clear status effects
 
-## ⚡ Surge Ability
+### Critical Hits
+- Longer chains (5+ runes) have increased critical hit chance
+- Crits deal 75% bonus damage with special effects!
 
-Collect gold to charge your Surge meter. When full, activate to transmute ALL enemies into gold!
+### Enemy Abilities
+Enemies have unique abilities that require different strategies:
+- **Bleed**: Causes damage over time
+- **Burn**: Deals fire damage each turn
+- **Pierce**: Ignores your shield
+- **Drain**: Steals your surge charge
+- **Armor**: Takes reduced damage
+- **Reflect**: Returns some damage to you
+- **Regen**: Heals each turn
+- **Curse**: Reduces your healing effectiveness
 
-## 🕹️ Controls
+### Bosses
+Every 5 floors you'll encounter a powerful boss:
+- 🌳 **Ancient Treant** (Floor 5)
+- 🐉 **Elder Hydra** (Floor 10)
+- 👤 **Shadow Lord** (Floor 15)
+- 🔥 **Dragon King** (Floor 20+)
 
-- **Touch/Click + Drag** to connect tiles
-- Tiles can connect horizontally, vertically, and diagonally
-- Backtrack over your path to undo connections
+## 🏆 Tips for Success
 
-## 🎯 Tips
+1. **Build combos**: Each match in a turn increases your combo multiplier
+2. **Balance offense and defense**: Don't neglect shields and healing
+3. **Prepare for bosses**: Stock up potions and charge your surge before floor 5, 10, 15...
+4. **Long chains**: 6+ rune chains have much higher crit chance
+5. **Choose upgrades wisely**: HP helps early, damage scales better late
 
-- Chain swords WITH enemies to deal damage (sword → skull → sword)
-- Wild ✨ tiles are rare but incredibly powerful
-- Keep your shield up - enemies attack every turn!
-- Balance offense and defense to survive longer
+## 📊 Run Statistics
 
-## 🚀 Run It
+When your run ends, you'll see:
+- Floor reached
+- Enemies & bosses defeated
+- Total damage dealt
+- Gold earned
+- Critical hits landed
+- Longest chain achieved
 
-Open `index.html` in your browser or via GitHub Pages.
+## 🛠️ Tech Stack
+
+- Vanilla JavaScript
+- Tailwind CSS
+- Tone.js for audio
+- SVG graphics
+
+## 🎵 Audio
+
+Click anywhere to enable audio. The game features:
+- Rising scale notes for chain building
+- Impact sounds for attacks
+- Satisfying gold collection sounds
+- Boss encounter fanfare
 
 ---
-*A couch gaming project built with Cursor Mobile* 🛋️
+
+*Delve deep, fight hard, and may your chains be long!* ⚔️

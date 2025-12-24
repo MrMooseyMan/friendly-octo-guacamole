@@ -4,7 +4,8 @@
 body {
     font-family: 'Inter', sans-serif;
     touch-action: none; /* Prevent scrolling on mobile while dragging */
-    background-color: #0f172a; /* bg-slate-900 */
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+    background-attachment: fixed;
 }
 
 .font-fantasy {
@@ -16,7 +17,7 @@ body {
     display: grid;
     grid-template-columns: repeat(var(--grid-size, 6), 1fr);
     grid-template-rows: repeat(var(--grid-size, 6), 1fr);
-    gap: 6px; /* Tighter gap */
+    gap: 5px;
     user-select: none;
     touch-action: none;
 }
@@ -25,108 +26,152 @@ body {
 .rune {
     width: 100%;
     aspect-ratio: 1 / 1;
-    border-radius: 0.5rem; /* rounded-lg */
+    border-radius: 0.5rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    background-color: #334155; /* bg-slate-700 */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0,0,0,0.1);
-    padding: 15%; /* Padding for the SVG icon */
+    transition: all 0.15s ease;
+    background-color: #334155;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(0,0,0,0.1);
+    padding: 12%;
     position: relative;
 }
 
+.rune:hover {
+    transform: scale(1.02);
+}
+
 .rune.selected {
-    transform: scale(1.1);
+    transform: scale(1.12);
     opacity: 1;
-    background-color: #475569; /* bg-slate-600 */
-    box-shadow: 0 0 15px 5px var(--glow-color, #fff);
+    background-color: #475569;
+    box-shadow: 0 0 20px 8px var(--glow-color, #fff), inset 0 0 10px rgba(255,255,255,0.3);
     z-index: 10;
 }
 
 .rune svg {
     width: 100%;
     height: 100%;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.6));
     pointer-events: none;
 }
 
 /* --- Rune Icon Colors --- */
-.rune-red svg { fill: #f43f5e; } /* rose-500 */
+.rune-red svg { fill: #f43f5e; }
 .rune-red { --glow-color: #f43f5e; } 
 
-.rune-green svg { fill: #10b981; } /* emerald-500 */
+.rune-green svg { fill: #10b981; }
 .rune-green { --glow-color: #10b981; }
 
-.rune-blue svg { fill: #0ea5e9; } /* sky-500 */
+.rune-blue svg { fill: #0ea5e9; }
 .rune-blue { --glow-color: #0ea5e9; }
 
-.rune-yellow svg { fill: #f59e0b; } /* amber-500 */
+.rune-yellow svg { fill: #f59e0b; }
 .rune-yellow { --glow-color: #f59e0b; }
 
-.rune-purple svg { fill: #a78bfa; } /* violet-400 */
+.rune-purple svg { fill: #a78bfa; }
 .rune-purple { --glow-color: #a78bfa; }
 
-.rune-white svg { fill: #f1f5f9; } /* slate-100 */
-.rune-white { --glow-color: #f1f5f9; }
+.rune-white svg { fill: #f1f5f9; }
+.rune-white { --glow-color: #fef3c7; }
 
 /* --- Animations --- */
 @keyframes fall {
-    from { transform: translateY(-100px); opacity: 0; }
+    from { transform: translateY(-80px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-5px); }
-    40%, 80% { transform: translateX(5px); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+@keyframes shake-big {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    10%, 50%, 90% { transform: translateX(-8px) translateY(-2px); }
+    30%, 70% { transform: translateX(8px) translateY(2px); }
+}
+
+@keyframes shake-small {
+    0%, 100% { transform: translateX(0); }
+    25%, 75% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
 }
 
 @keyframes pulse-bright {
-    0%, 100% { opacity: 1; filter: brightness(1.2); }
-    50% { opacity: 0.8; filter: brightness(0.9); }
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.5); }
+}
+
+@keyframes boss-glow {
+    0%, 100% { box-shadow: 0 0 10px 3px #f59e0b, inset 0 0 5px rgba(245,158,11,0.3); }
+    50% { box-shadow: 0 0 20px 8px #f59e0b, inset 0 0 10px rgba(245,158,11,0.5); }
+}
+
+@keyframes float-up-big {
+    0% { transform: translateY(0) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-60px) scale(1.5); opacity: 0; }
 }
 
 .animate-fall {
-    animation: fall 0.3s ease-out;
+    animation: fall 0.25s ease-out;
 }
 
 .animate-shake {
-    animation: shake 0.5s ease-in-out;
+    animation: shake 0.4s ease-in-out;
+}
+
+.shake-big {
+    animation: shake-big 0.3s ease-in-out;
+}
+
+.shake-small {
+    animation: shake-small 0.2s ease-in-out;
 }
 
 .animate-pulse-bright {
-    animation: pulse-bright 1.5s infinite ease-in-out;
+    animation: pulse-bright 0.5s ease-in-out 2;
 }
 
 /* --- UI Elements --- */
 .hp-bar-bg {
-    background-color: #374151; /* gray-700 */
+    background-color: #1e293b;
     border-radius: 9999px;
     overflow: hidden;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
 }
 
 .hp-bar {
     height: 100%;
-    transition: width 0.5s ease-in-out;
+    transition: width 0.4s ease-in-out;
     border-radius: 9999px;
-    background-image: linear-gradient(to right, rgba(255,255,255,0.2), rgba(255,255,255,0.0));
+    background-image: linear-gradient(to right, rgba(255,255,255,0.25), rgba(255,255,255,0.0));
+    position: relative;
 }
 
-.hp-bar-player { background-color: #10b981; } /* emerald-500 */
-.hp-bar-enemy { background-color: #f43f5e; } /* rose-500 */
-.hp-bar-special { background-color: #0ea5e9; } /* sky-500 */
-.hp-bar-shield { background-color: #f59e0b; } /* amber-500 */
+.hp-bar-player { 
+    background: linear-gradient(90deg, #059669 0%, #10b981 100%); 
+}
+.hp-bar-enemy { 
+    background: linear-gradient(90deg, #dc2626 0%, #f43f5e 100%); 
+}
+.hp-bar-special { 
+    background: linear-gradient(90deg, #0284c7 0%, #0ea5e9 100%); 
+}
+.hp-bar-shield { 
+    background: linear-gradient(90deg, #d97706 0%, #f59e0b 100%); 
+}
 
 /* --- Portrait --- */
 .portrait-container {
-    width: 80px;
-    height: 80px;
-    background-color: #1e293b; /* slate-800 */
-    border: 2px solid #334155; /* slate-700 */
-    border-radius: 0.5rem;
-    padding: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid #334155;
+    border-radius: 0.75rem;
+    padding: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
     flex-shrink: 0;
+    transition: all 0.3s ease;
 }
 
 .portrait-container svg {
@@ -134,12 +179,21 @@ body {
     height: 100%;
 }
 
+.player-portrait {
+    border-color: #10b981;
+}
+
+.boss-portrait {
+    border-color: #f59e0b;
+    animation: boss-glow 2s ease-in-out infinite;
+}
+
 /* --- Modal --- */
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -147,6 +201,7 @@ body {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.3s ease;
+    padding: 1rem;
 }
 
 .modal-backdrop.visible {
@@ -155,12 +210,12 @@ body {
 }
 
 .modal-content {
-    transform: scale(0.9);
+    transform: scale(0.9) translateY(20px);
     transition: transform 0.3s ease;
 }
 
 .modal-backdrop.visible .modal-content {
-    transform: scale(1);
+    transform: scale(1) translateY(0);
 }
 
 /* Connector Line (SVG Overlay) */
@@ -176,24 +231,144 @@ body {
 
 .connector-line {
     fill: none;
-    stroke: rgba(255, 255, 255, 0.6);
-    stroke-width: 6;
+    stroke: rgba(255, 255, 255, 0.7);
+    stroke-width: 5;
     stroke-linecap: round;
     stroke-linejoin: round;
-    filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.6));
 }
 
+/* Floating Text */
 .floating-text {
     position: absolute;
     font-weight: bold;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     pointer-events: none;
     animation: floatUp 1s forwards;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    text-shadow: 0 2px 6px rgba(0,0,0,0.7);
     z-index: 30;
+    white-space: nowrap;
+}
+
+.floating-text.big-crit {
+    font-size: 1.5rem;
+    animation: float-up-big 1.2s forwards;
+    text-shadow: 0 0 10px currentColor, 0 2px 8px rgba(0,0,0,0.8);
 }
 
 @keyframes floatUp {
     0% { transform: translateY(0) scale(1); opacity: 1; }
-    100% { transform: translateY(-40px) scale(1.2); opacity: 0; }
+    100% { transform: translateY(-50px) scale(1.15); opacity: 0; }
+}
+
+/* Loot Display */
+.loot-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: rgba(0,0,0,0.3);
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+}
+
+.gold-reward {
+    color: #fbbf24;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.xp-reward {
+    color: #a78bfa;
+    font-weight: bold;
+}
+
+.potion-reward {
+    color: #10b981;
+    font-weight: bold;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.stats-grid > div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.stats-grid > div:last-child {
+    border-bottom: none;
+}
+
+.stats-grid strong {
+    color: #fbbf24;
+}
+
+/* Game Board Container */
+#game-board-container {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+}
+
+/* Button Improvements */
+button {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+/* Status Effect Indicators (for future use) */
+.status-bleed {
+    color: #dc2626;
+}
+
+.status-burn {
+    color: #f97316;
+}
+
+.status-curse {
+    color: #6366f1;
+}
+
+/* Upgrade button hover effects */
+.upgrade-choice:hover {
+    transform: translateY(-2px);
+}
+
+.upgrade-choice:active {
+    transform: translateY(0);
+}
+
+/* Floor display styling */
+#floor-display {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Responsive adjustments */
+@media (max-height: 700px) {
+    .portrait-container {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .rune {
+        padding: 10%;
+    }
+}
+
+@media (max-height: 600px) {
+    .portrait-container {
+        width: 50px;
+        height: 50px;
+    }
+    
+    #game-container {
+        padding: 0.25rem;
+    }
 }
