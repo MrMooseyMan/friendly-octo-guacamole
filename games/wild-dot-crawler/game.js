@@ -27,9 +27,12 @@ document.addEventListener('DOMContentLoaded', () => {
         'crystal-golem': `<svg viewBox="0 0 100 100" fill="#22d3ee"><polygon points="50,10 30,40 30,70 50,90 70,70 70,40"></polygon><polygon points="50,20 35,45 35,65 50,80 65,65 65,45" fill="#0891b2"></polygon><circle cx="40" cy="50" r="4" fill="#fef3c7"></circle><circle cx="60" cy="50" r="4" fill="#fef3c7"></circle></svg>`,
         'void-weaver': `<svg viewBox="0 0 100 100" fill="#6366f1"><circle cx="50" cy="50" r="25" fill="#1e1b4b"></circle><circle cx="50" cy="50" r="20" fill="#312e81"></circle><path d="M50 25 L55 45 L75 50 L55 55 L50 75 L45 55 L25 50 L45 45 Z" fill="#6366f1"></path><circle cx="50" cy="50" r="8" fill="#818cf8"></circle></svg>`,
         'inferno-beast': `<svg viewBox="0 0 100 100" fill="#ef4444"><path d="M30 80 L40 60 L35 40 L50 55 L65 40 L60 60 L70 80 L50 70 Z"></path><path d="M50 55 L45 30 L50 15 L55 30 Z" fill="#f97316"></path><path d="M35 40 L20 35 L30 50 Z" fill="#f97316"></path><path d="M65 40 L80 35 L70 50 Z" fill="#f97316"></path><circle cx="42" cy="55" r="4" fill="#fef3c7"></circle><circle cx="58" cy="55" r="4" fill="#fef3c7"></circle></svg>`,
-        
+        'frost-wisp': `<svg viewBox="0 0 100 100" fill="#38bdf8"><circle cx="50" cy="50" r="15" fill="#e0f2fe"></circle><path d="M50 30 L50 20 M50 70 L50 80 M30 50 L20 50 M70 50 L80 50 M35 35 L28 28 M65 65 L72 72 M35 65 L28 72 M65 35 L72 28" stroke="#bae6fd" stroke-width="3"></path><circle cx="50" cy="50" r="25" fill="#38bdf8" fill-opacity="0.3"></circle></svg>`,
+
         // BOSSES
         'ancient-treant': `<svg viewBox="0 0 100 100" fill="#166534"><path d="M40 90 L40 60 L30 60 L30 55 L35 50 L25 40 L35 35 L30 25 L45 30 L50 15 L55 30 L70 25 L65 35 L75 40 L65 50 L70 55 L70 60 L60 60 L60 90 Z"></path><circle cx="40" cy="45" r="6" fill="#fde047"></circle><circle cx="60" cy="45" r="6" fill="#fde047"></circle><path d="M40 60 C50 70, 50 70, 60 60" stroke="#84cc16" stroke-width="3" fill="none"></path></svg>`,
+        'frost-giant': `<svg viewBox="0 0 100 100" fill="#0284c7"><path d="M30 30 L70 30 L80 50 L70 90 L30 90 L20 50 Z"></path><rect x="35" y="10" width="30" height="25" fill="#bae6fd"></rect><circle cx="40" cy="45" r="5" fill="#f0f9ff"></circle><circle cx="60" cy="45" r="5" fill="#f0f9ff"></circle><path d="M20 50 L10 70 L30 60 Z" fill="#0284c7"></path><path d="M80 50 L90 70 L70 60 Z" fill="#0284c7"></path></svg>`,
+
         'elder-hydra': `<svg viewBox="0 0 100 100" fill="#0891b2"><path d="M50 90 L45 60 L35 55 L30 30 L35 45 L40 40 L50 25 L60 40 L65 45 L70 30 L65 55 L55 60 Z"></path><circle cx="30" cy="28" r="8" fill="#0e7490"></circle><circle cx="50" cy="20" r="10" fill="#0e7490"></circle><circle cx="70" cy="28" r="8" fill="#0e7490"></circle><circle cx="27" cy="26" r="3" fill="#fef3c7"></circle><circle cx="33" cy="26" r="3" fill="#fef3c7"></circle><circle cx="46" cy="18" r="4" fill="#fef3c7"></circle><circle cx="54" cy="18" r="4" fill="#fef3c7"></circle><circle cx="67" cy="26" r="3" fill="#fef3c7"></circle><circle cx="73" cy="26" r="3" fill="#fef3c7"></circle></svg>`,
         'shadow-lord': `<svg viewBox="0 0 100 100" fill="#1f2937"><path d="M50 10 L40 25 L25 20 L35 35 L20 45 L35 50 L25 80 L45 65 L50 90 L55 65 L75 80 L65 50 L80 45 L65 35 L75 20 L60 25 Z"></path><circle cx="42" cy="40" r="5" fill="#dc2626"></circle><circle cx="58" cy="40" r="5" fill="#dc2626"></circle><path d="M40 55 L50 60 L60 55" stroke="#dc2626" stroke-width="2" fill="none"></path></svg>`,
         'dragon-king': `<svg viewBox="0 0 100 100" fill="#eab308"><path d="M20 70 L30 55 L25 45 L35 50 L45 35 L50 20 L55 35 L65 50 L75 45 L70 55 L80 70 L65 65 L50 85 L35 65 Z"></path><path d="M45 35 L35 20 L45 25 Z M55 35 L65 20 L55 25 Z" fill="#ca8a04"></path><circle cx="42" cy="45" r="5" fill="#fef3c7"></circle><circle cx="58" cy="45" r="5" fill="#fef3c7"></circle><circle cx="42" cy="45" r="2" fill="#1f2937"></circle><circle cx="58" cy="45" r="2" fill="#1f2937"></circle><path d="M45 60 C50 65, 50 65, 55 60" stroke="#dc2626" stroke-width="2" fill="none"></path></svg>`,
@@ -46,11 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Crystal Golem", icon: "crystal-golem", color: "text-cyan-400", hpBase: 35, hpScale: 10, dmgBase: 6, dmgScale: 1.5, ability: "reflect", abilityDesc: "Reflects some damage" },
         { name: "Void Weaver", icon: "void-weaver", color: "text-indigo-400", hpBase: 20, hpScale: 6, dmgBase: 7, dmgScale: 2, ability: "curse", abilityDesc: "Curses reduce healing" },
         { name: "Inferno Beast", icon: "inferno-beast", color: "text-orange-500", hpBase: 28, hpScale: 9, dmgBase: 8, dmgScale: 2, ability: "burn", abilityDesc: "Burning damage over time" },
+        { name: "Frost Wisp", icon: "frost-wisp", color: "text-sky-300", hpBase: 14, hpScale: 4, dmgBase: 3, dmgScale: 1, ability: "freeze", abilityDesc: "Freezes runes" },
     ];
 
     // Boss enemies (appear every 5 floors)
     const BOSSES = [
         { name: "Ancient Treant", icon: "ancient-treant", color: "text-green-500", hpBase: 50, hpScale: 15, dmgBase: 6, dmgScale: 2, ability: "summon", abilityDesc: "Summons roots", isBoss: true },
+        { name: "Frost Giant", icon: "frost-giant", color: "text-sky-600", hpBase: 65, hpScale: 16, dmgBase: 9, dmgScale: 2.5, ability: "freeze_area", abilityDesc: "Freezes large area", isBoss: true },
+
         { name: "Elder Hydra", icon: "elder-hydra", color: "text-cyan-500", hpBase: 70, hpScale: 20, dmgBase: 8, dmgScale: 2.5, ability: "multiattack", abilityDesc: "Attacks 3 times", isBoss: true },
         { name: "Shadow Lord", icon: "shadow-lord", color: "text-gray-600", hpBase: 60, hpScale: 18, dmgBase: 10, dmgScale: 3, ability: "darkness", abilityDesc: "Hides some runes", isBoss: true },
         { name: "Dragon King", icon: "dragon-king", color: "text-yellow-500", hpBase: 100, hpScale: 25, dmgBase: 12, dmgScale: 3.5, ability: "inferno", abilityDesc: "Devastating fire breath", isBoss: true },
@@ -139,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const elPlayerPotions = document.getElementById('player-potions');
     const btnSurge = document.getElementById('surge-btn');
     const btnPotion = document.getElementById('potion-btn');
+    const btnShuffle = document.getElementById('shuffle-btn');
     
     // Enemy UI
     const elEnemySection = document.getElementById('enemy-section');
@@ -226,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         btnSurge.addEventListener('click', activateSurge);
         btnPotion?.addEventListener('click', usePotion);
+        btnShuffle?.addEventListener('click', shuffleBoard);
         btnNextBattle.addEventListener('click', nextBattle);
         btnRestart.addEventListener('click', restartGame);
         
@@ -327,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (falling) el.classList.add('animate-fall');
         
-        state.grid[x][y] = { type, id, el, x, y };
+        state.grid[x][y] = { type, id, el, x, y, frozen: false };
     }
     
     function renderBoard() {
@@ -369,6 +377,12 @@ document.addEventListener('DOMContentLoaded', () => {
         state.selected = [];
         const hit = getRuneAtEvent(e);
         if (hit) {
+            const rune = state.grid[hit.x][hit.y];
+            if (rune.frozen) {
+                spawnFloatingText(rune.el, "Frozen!", "#38bdf8");
+                state.isDragging = false;
+                return;
+            }
             selectRune(hit.x, hit.y);
             boardElement.setPointerCapture(e.pointerId);
         }
@@ -411,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function canConnect(a, b) {
+        if (a.frozen || b.frozen) return false;
         if (a.type === b.type) return true;
         if (a.type === 'white' || b.type === 'white') return true;
         return false;
@@ -726,6 +741,57 @@ document.addEventListener('DOMContentLoaded', () => {
         spawnFloatingText(elPlayerPortrait, `+${healAmount} HP`, "#10b981");
         updateUI();
     }
+    
+    function shuffleBoard() {
+        if (state.player.gold < 5) return;
+        
+        state.player.gold -= 5;
+        updateUI();
+        
+        // Collect types
+        const types = [];
+        for (let x = 0; x < GRID_SIZE; x++) {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                if (state.grid[x][y]) {
+                    types.push(state.grid[x][y].type);
+                }
+            }
+        }
+        
+        // Shuffle
+        for (let i = types.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [types[i], types[j]] = [types[j], types[i]];
+        }
+        
+        // Apply
+        let idx = 0;
+        for (let x = 0; x < GRID_SIZE; x++) {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                if (state.grid[x][y]) {
+                    const rune = state.grid[x][y];
+                    rune.type = types[idx++];
+                    rune.el.className = `rune rune-${rune.type}`;
+                    rune.el.innerHTML = ICONS[rune.type];
+                    
+                    // Shuffle breaks ice
+                    if (rune.frozen) {
+                        rune.frozen = false;
+                        rune.el.classList.remove('frozen');
+                    }
+                    
+                    // Re-add selected class if needed (though we should clear selection on shuffle)
+                }
+            }
+        }
+        
+        state.selected = [];
+        drawConnector();
+        
+        playSound('powerup');
+        spawnFloatingText(boardElement, "SHUFFLED!", "#fbbf24");
+        screenShake();
+    }
 
     function activateSurge() {
         if (state.player.special < state.player.maxSpecial) return;
@@ -879,12 +945,52 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUI();
     }
 
+    function freezeRunes(count) {
+        let available = [];
+        for(let x=0; x<GRID_SIZE; x++) {
+            for(let y=0; y<GRID_SIZE; y++) {
+                if(state.grid[x][y] && !state.grid[x][y].frozen) {
+                    available.push(state.grid[x][y]);
+                }
+            }
+        }
+        
+        // Shuffle available
+        for (let i = available.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [available[i], available[j]] = [available[j], available[i]];
+        }
+        
+        // Freeze top N
+        let frozenCount = 0;
+        for(let i=0; i<Math.min(count, available.length); i++) {
+            const rune = available[i];
+            rune.frozen = true;
+            rune.el.classList.add('frozen');
+            frozenCount++;
+        }
+        
+        if (frozenCount > 0) {
+            playSound('shield'); 
+        }
+    }
+
     function endTurn() {
         elTurnStatus.textContent = "ENEMY TURN...";
         elTurnStatus.classList.replace('text-amber-400', 'text-rose-400');
         
         setTimeout(() => {
             if (!state.enemy || state.enemy.hp <= 0) return;
+            
+            // Thaw existing frozen runes
+            for(let x=0; x<GRID_SIZE; x++) {
+                for(let y=0; y<GRID_SIZE; y++) {
+                    if(state.grid[x][y] && state.grid[x][y].frozen) {
+                        state.grid[x][y].frozen = false;
+                        state.grid[x][y].el.classList.remove('frozen');
+                    }
+                }
+            }
             
             // Apply player status effects first
             if (state.player.bleed > 0) {
@@ -972,6 +1078,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
+            if (state.enemy.ability === 'freeze') {
+                freezeRunes(3);
+                spawnFloatingText(elEnemyPortrait, "FROST!", "#38bdf8");
+            }
+            
+            if (state.enemy.ability === 'freeze_area') {
+                freezeRunes(10);
+                spawnFloatingText(elEnemyPortrait, "BLIZZARD!", "#38bdf8");
+            }
+            
             updateUI();
             
             if (state.player.hp <= 0) {
@@ -1020,6 +1136,16 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (elPlayerPotions) {
             elPlayerPotions.textContent = `🧪 ${state.player.potions}`;
+        }
+        
+        if (btnShuffle) {
+            if (state.player.gold >= 5) {
+                btnShuffle.classList.remove('opacity-50', 'cursor-not-allowed');
+                btnShuffle.disabled = false;
+            } else {
+                btnShuffle.classList.add('opacity-50', 'cursor-not-allowed');
+                btnShuffle.disabled = true;
+            }
         }
         
         if (state.player.special >= state.player.maxSpecial) {
