@@ -13,9 +13,13 @@ Push code from Cursor Mobile → GitHub Pages auto-deploys → Tap link on your 
 ### Currently Playable
 | Project | Description | Type |
 |---------|-------------|------|
-| [DoodlePlay](websites/doodleplay/) | Turn kids' drawings into games | Static Web |
-| [Fireworks](websites/fireworks/) | Tap to launch fireworks | Static Web |
-| [Nutrition Mon](games/nutrition-label-creature-generator/) | Barcode → creature generator | Python (needs server) |
+| 🎨 [DoodlePlay](websites/doodleplay/) | Turn kids' drawings into playable games | Static Web |
+| 🎆 [Fireworks](websites/fireworks/) | Tap to launch fireworks | Static Web |
+| 🔮 [Spell Solitaire](games/spell-solitaire/) | Klondike Solitaire with magic spells | Static Web |
+| 🐾 [Wild-Dot Crawler](games/wild-dot-crawler/) | Roguelike match-3 puzzle RPG | Static Web |
+| 🫧 [Bubble Popper](games/bubble-popper/) | Classic bubble shooter game | Static Web |
+| 🌙 [Do Not Disturb](apps/do-not-disturb/) | Digital wellness status indicator | Static Web |
+| 🥑 [Nutrition Mon](games/nutrition-label-creature-generator/) | Barcode → creature generator | Python (needs server) |
 
 ## What is this?
 
