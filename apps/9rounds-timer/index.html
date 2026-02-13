@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>Home 9 Rounds</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:#0a0a0f;
+    color:#e0e0e0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    min-height:100dvh;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+
+  /* --- Workout Select Screen --- */
+  #select-screen{
+    display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:20px;width:100%;padding:20px;
+  }
+  #select-screen h1{
+    font-size:2rem;font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(135deg,#00ff88,#00bbff);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  #select-screen p{color:#888;font-size:.95rem;margin-bottom:10px}
+  .workout-btn{
+    width:min(90%,360px);padding:18px 24px;border:2px solid #222;
+    border-radius:14px;background:#111;color:#fff;font-size:1.1rem;
+    font-weight:600;cursor:pointer;transition:all .15s;text-align:left;
+  }
+  .workout-btn:hover,.workout-btn:active{
+    border-color:#00ff88;background:#0a1a10;transform:scale(1.02);
+  }
+  .workout-btn .day{color:#00ff88;font-size:.8rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+  .workout-btn .name{font-size:1.15rem}
+
+  /* --- Timer Screen --- */
+  #timer-screen{
+    display:none;flex-direction:column;align-items:center;
+    justify-content:space-between;width:100%;height:100vh;height:100dvh;
+    padding:16px 16px env(safe-area-inset-bottom,16px);
+  }
+
+  /* Round lights */
+  .round-lights{
+    display:flex;gap:8px;padding:8px 0;flex-shrink:0;
+  }
+  .round-light{
+    width:28px;height:28px;border-radius:50%;
+    background:#1a1a22;border:2px solid #333;
+    transition:all .3s;font-size:.7rem;font-weight:700;
+    display:flex;align-items:center;justify-content:center;color:#555;
+  }
+  .round-light.done{background:#00ff88;border-color:#00ff88;color:#000}
+  .round-light.active{
+    background:#00ff88;border-color:#00ff88;color:#000;
+    box-shadow:0 0 16px #00ff8866;transform:scale(1.15);
+  }
+  .round-light.active.rest{
+    background:#3388ff;border-color:#3388ff;
+    box-shadow:0 0 16px #3388ff66;
+  }
+  .round-light.active.warning{
+    background:#ffaa00;border-color:#ffaa00;
+    box-shadow:0 0 16px #ffaa0066;
+  }
+
+  /* Center content */
+  .timer-center{
+    flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    width:100%;max-width:420px;gap:8px;
+  }
+  .phase-label{
+    font-size:1rem;font-weight:700;text-transform:uppercase;
+    letter-spacing:.15em;color:#00ff88;
+  }
+  .phase-label.rest{color:#3388ff}
+  .phase-label.warning{color:#ffaa00}
+  .phase-label.countdown{color:#ff4444}
+
+  .timer-display{
+    font-size:min(28vw,160px);font-weight:800;
+    font-variant-numeric:tabular-nums;line-height:1;
+    color:#fff;text-shadow:0 0 40px #00ff8833;
+    transition:text-shadow .3s,color .3s;
+  }
+  .timer-display.rest{text-shadow:0 0 40px #3388ff33}
+  .timer-display.warning{color:#ffaa00;text-shadow:0 0 40px #ffaa0044}
+  .timer-display.countdown{color:#ff4444;text-shadow:0 0 60px #ff444466;font-size:min(40vw,220px)}
+
+  .station-name{
+    font-size:1.4rem;font-weight:700;text-align:center;
+    margin-top:8px;color:#fff;padding:0 10px;
+  }
+  .station-desc{
+    font-size:.9rem;color:#aaa;text-align:center;
+    line-height:1.4;padding:0 16px;max-height:120px;overflow-y:auto;
+  }
+  .next-preview{
+    font-size:.85rem;color:#667;text-align:center;margin-top:8px;
+  }
+  .next-preview span{color:#aaa}
+
+  /* Bottom controls */
+  .controls{
+    display:flex;gap:14px;padding:10px 0;flex-shrink:0;
+  }
+  .ctrl-btn{
+    padding:14px 28px;border:none;border-radius:12px;
+    font-size:1rem;font-weight:700;cursor:pointer;
+    transition:all .15s;
+  }
+  .ctrl-btn.primary{background:#00ff88;color:#000}
+  .ctrl-btn.primary:active{background:#00dd77;transform:scale(.96)}
+  .ctrl-btn.danger{background:#331111;color:#ff4444;border:1px solid #441111}
+  .ctrl-btn.danger:active{background:#441111;transform:scale(.96)}
+  .ctrl-btn.secondary{background:#1a1a22;color:#aaa;border:1px solid #333}
+  .ctrl-btn.secondary:active{background:#222;transform:scale(.96)}
+
+  /* Done screen */
+  #done-screen{
+    display:none;flex-direction:column;align-items:center;
+    justify-content:center;gap:20px;height:100vh;height:100dvh;
+  }
+  #done-screen h1{font-size:2.2rem;font-weight:800;color:#00ff88}
+  #done-screen p{color:#888;font-size:1.1rem}
+  #done-screen .time{font-size:1.6rem;color:#fff;font-weight:700}
+
+  /* Countdown overlay */
+  #countdown-overlay{
+    display:none;position:fixed;inset:0;background:#0a0a0fee;
+    z-index:100;align-items:center;justify-content:center;
+    flex-direction:column;gap:16px;
+  }
+  #countdown-overlay .count{
+    font-size:min(50vw,280px);font-weight:900;color:#ff4444;
+    text-shadow:0 0 80px #ff444466;line-height:1;
+  }
+  #countdown-overlay .label{
+    font-size:1.2rem;color:#888;font-weight:600;text-transform:uppercase;
+    letter-spacing:.15em;
+  }
+
+  /* Wake lock indicator */
+  .wake-lock{
+    position:fixed;top:8px;right:12px;font-size:.7rem;
+    color:#333;pointer-events:none;
+  }
+</style>
+</head>
+<body>
+
+<!-- Workout Select -->
+<div id="select-screen">
+  <h1>Home 9 Rounds</h1>
+  <p>Pick your workout</p>
+  <button class="workout-btn" onclick="startWorkout(0)">
+    <div class="day">Push Day</div>
+    <div class="name">Chest, Shoulders, Triceps + Bag</div>
+  </button>
+  <button class="workout-btn" onclick="startWorkout(1)">
+    <div class="day">Pull Day</div>
+    <div class="name">Back, Biceps + Bag</div>
+  </button>
+  <button class="workout-btn" onclick="startWorkout(2)">
+    <div class="day">Leg Day</div>
+    <div class="name">Legs, Arms + Bag</div>
+  </button>
+  <button class="workout-btn" onclick="startWorkout(3)">
+    <div class="day">Freestyle</div>
+    <div class="name">Full Body Brawler</div>
+  </button>
+</div>
+
+<!-- Timer -->
+<div id="timer-screen">
+  <div class="round-lights" id="round-lights"></div>
+  <div class="timer-center">
+    <div class="phase-label" id="phase-label">ROUND 1</div>
+    <div class="timer-display" id="timer-display">3:00</div>
+    <div class="station-name" id="station-name"></div>
+    <div class="station-desc" id="station-desc"></div>
+    <div class="next-preview" id="next-preview"></div>
+  </div>
+  <div class="controls">
+    <button class="ctrl-btn danger" onclick="quitWorkout()">Quit</button>
+    <button class="ctrl-btn secondary" id="skip-btn" onclick="skipPhase()">Skip</button>
+    <button class="ctrl-btn primary" id="pause-btn" onclick="togglePause()">Pause</button>
+  </div>
+</div>
+
+<!-- Countdown Overlay -->
+<div id="countdown-overlay">
+  <div class="label">Get Ready</div>
+  <div class="count" id="countdown-num">3</div>
+</div>
+
+<!-- Done Screen -->
+<div id="done-screen">
+  <h1>Done!</h1>
+  <p>Total time</p>
+  <div class="time" id="total-time">0:00</div>
+  <button class="ctrl-btn primary" onclick="backToSelect()" style="margin-top:20px">Back to Workouts</button>
+</div>
+
+<div class="wake-lock" id="wake-lock-status"></div>
+
+<script>
+// ============================================================
+// WORKOUT DATA
+// ============================================================
+const WORKOUTS = [
+  { // Push Day
+    name: "Push Day 9 Rounds",
+    rounds: [
+      { station: "Warm-up", desc: "High knees 30s, shadow boxing 1 min, arm circles + bodyweight squats 30s, shadow box 1 min. Get loose, get warm." },
+      { station: "Barbell Bench Press", desc: "3x10 (Phase 1) / 4x8 (Phase 2+). Rest 60-90 sec between sets." },
+      { station: "Bag - Jab/Cross", desc: "1-2 combos, move your feet. Shake out the bench pump. Stay light, find your rhythm." },
+      { station: "Overhead Press", desc: "3x8 (Phase 1) / 4x8 (Phase 2+). Strict form, no leg drive." },
+      { station: "Bag - Speed Round", desc: "Light, fast punches - high volume. 1-1-2, 1-2-3, 1-2-1-2. Don't load up, just stay busy. Circle the bag." },
+      { station: "Ring Push-ups + Ring Dips", desc: "Ring push-ups 3x10, then ring dips 2x8. Superset - push-ups into dips, rest, repeat." },
+      { station: "Bag - Power Round", desc: "Controlled hooks and uppercuts. 3-2-3, 5-6-5. Snap and retract at 70-80%. 10 sec burst, 5 sec reset." },
+      { station: "Dumbbell Curls", desc: "3x12. Slow negatives. Squeeze at the top. Arms should be screaming." },
+      { station: "Core Burnout", desc: "45s plank, 20 bicycle crunches, 15 leg raises, 10 V-ups. Rest 30 sec. Repeat x2." },
+    ]
+  },
+  { // Pull Day
+    name: "Pull Day 9 Rounds",
+    rounds: [
+      { station: "Warm-up", desc: "Shadow boxing 2 min (move your feet, throw light combos), high knees 30s, fast feet 30s." },
+      { station: "Pull-ups", desc: "3xAMRAP (Phase 1) / 4xAMRAP (Phase 2+). Rest 90 sec between sets. Use a band if needed." },
+      { station: "Bag - 1-2-3 Combos", desc: "Jab-cross-hook. Focus on the hook rotation. Circle the bag between combos." },
+      { station: "Barbell Rows", desc: "3x10 (Phase 1) / 4x8 (Phase 2+). Squeeze your shoulder blades at the top." },
+      { station: "Bag - Body Shots", desc: "Throw 1-2 up top, then dip and throw 2 body hooks. Practice level changes - head, body, head, body." },
+      { station: "Ring Rows", desc: "3x10. Feet elevated if you can. Slow and controlled - 2 sec up, 2 sec down." },
+      { station: "Bag - Full Combos", desc: "1-2-3-2, 1-2-5-2, 1-2-3-6-3-2. Let everything fly. Move your feet. Hands UP between combos." },
+      { station: "DB Hammer Curls + Ring Hold", desc: "Hammer curls 3x12, then ring support hold 3x20 sec. Arms will be shaking." },
+      { station: "Core Burnout", desc: "Hanging knee raises x15, plank 45s, Russian twists x20. Rest 30 sec. Repeat x2." },
+    ]
+  },
+  { // Legs
+    name: "Legs + Bag 9 Rounds",
+    rounds: [
+      { station: "Warm-up", desc: "High knees 30s, butt kicks 30s, lateral hops 30s, bodyweight squats 30s, shadow boxing 1 min." },
+      { station: "Barbell Squats", desc: "3x10 (Phase 1) / 4x8 (Phase 2+). Full depth. Control the descent." },
+      { station: "Bag - Jab/Cross/Hook", desc: "1-2-3 combos. Legs are heavy from squats - plant your feet and rotate through the hips." },
+      { station: "Romanian Deadlifts", desc: "3x8 (Phase 1) / 4x8 (Phase 2+). Slow negative, feel the hamstring stretch." },
+      { station: "Bag - Uppercuts + Body", desc: "5-6 uppercut combos with body hooks. Get low, bend knees, drive up through the legs." },
+      { station: "Calf Raises + Squat Jumps", desc: "Calf raises 2x15, then squat jumps 2x10. Explosive on the jumps." },
+      { station: "Bag - Power Round", desc: "Controlled hooks and uppercuts. 3-2-3, 5-6-5. Snap and retract at 70-80%. Stay composed." },
+      { station: "BB Curls + Ring Dips", desc: "3x10 each. Curl, straight to dips, rest, repeat. Arm pump to finish." },
+      { station: "Core Burnout", desc: "Barbell rollouts x10 (or ab wheel), side plank 30s/side, flutter kicks 30s. Rest 30 sec. Repeat x2." },
+    ]
+  },
+  { // Freestyle
+    name: "Full Body Brawler",
+    rounds: [
+      { station: "Warm-up", desc: "Shadow boxing 2 min (throw real combos, move around), high knees 30s, fast feet 30s." },
+      { station: "Pick a Compound Lift", desc: "Bench, squats, rows, OHP - whatever you feel like. Do 3x8." },
+      { station: "Bag - Freestyle", desc: "Whatever you want. Combos, power shots, body work, movement. Just flow." },
+      { station: "Pick a Ring Exercise", desc: "Push-ups, dips, rows, support holds - dealer's choice. 3 sets." },
+      { station: "Bag - Speed Round", desc: "Light and fast. Nonstop volume punching. 1-2s, 1-1-2s. Don't stop. Cardio round." },
+      { station: "Pick an Isolation Lift", desc: "Curls, hammer curls, calf raises, RDLs - whatever's lagging. 3x12." },
+      { station: "Bag - War Round", desc: "3 min at 80%. Championship round. Best combos, best footwork, best form. Finish strong." },
+      { station: "Pull-ups + Push-ups", desc: "Alternate: pull-up set, push-up set. 3 rounds. No rest between the two." },
+      { station: "Core + Stretch", desc: "5 min core circuit (your choice), then 5 min stretching. Cool down. You earned it." },
+    ]
+  }
+];
+
+// ============================================================
+// CONFIG
+// ============================================================
+const WORK_TIME = 180;   // 3 minutes
+const REST_TIME = 90;    // 1.5 minutes
+const WARN_TIME = 30;    // warning at 30 sec remaining
+const TOTAL_ROUNDS = 9;
+
+// ============================================================
+// STATE
+// ============================================================
+let currentWorkout = null;
+let currentRound = 0;     // 0-indexed
+let phase = 'work';       // 'work' | 'rest'
+let timeLeft = 0;
+let running = false;
+let paused = false;
+let interval = null;
+let workoutStartTime = 0;
+let wakeLock = null;
+
+// ============================================================
+// AUDIO (Web Audio API - zero dependencies)
+// ============================================================
+let audioCtx = null;
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playBeep(freq, duration, count, gap) {
+  const ctx = getAudio();
+  for (let i = 0; i < count; i++) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'square';
+    const start = ctx.currentTime + i * (duration + gap);
+    gain.gain.setValueAtTime(0.3, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+    osc.start(start);
+    osc.stop(start + duration);
+  }
+}
+
+function playBell() {
+  const ctx = getAudio();
+  // Metallic bell - layered frequencies
+  const freqs = [800, 1200, 1600, 2400];
+  freqs.forEach((f, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = f;
+    osc.type = 'sine';
+    const vol = 0.15 / (i + 1);
+    const t = ctx.currentTime;
+    gain.gain.setValueAtTime(vol, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+    osc.start(t);
+    osc.stop(t + 1.3);
+  });
+  // Impact noise
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+  const noise = ctx.createBufferSource();
+  noise.buffer = buf;
+  const ng = ctx.createGain();
+  noise.connect(ng);
+  ng.connect(ctx.destination);
+  ng.gain.setValueAtTime(0.4, ctx.currentTime);
+  ng.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+  noise.start(ctx.currentTime);
+}
+
+function playWarningBeeps() { playBeep(880, 0.15, 2, 0.12); }
+
+function playTripleBell() {
+  playBell();
+  setTimeout(playBell, 500);
+  setTimeout(playBell, 1000);
+}
+
+// ============================================================
+// WAKE LOCK
+// ============================================================
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      document.getElementById('wake-lock-status').textContent = '';
+    }
+  } catch (e) { /* not critical */ }
+}
+
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && running && !paused) requestWakeLock();
+});
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function $(id) { return document.getElementById(id); }
+
+function show(id) { $(id).style.display = 'flex'; }
+function hide(id) { $(id).style.display = 'none'; }
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function buildRoundLights() {
+  const container = $('round-lights');
+  container.innerHTML = '';
+  for (let i = 0; i < TOTAL_ROUNDS; i++) {
+    const el = document.createElement('div');
+    el.className = 'round-light';
+    el.textContent = i + 1;
+    el.id = 'light-' + i;
+    container.appendChild(el);
+  }
+}
+
+function updateRoundLights() {
+  for (let i = 0; i < TOTAL_ROUNDS; i++) {
+    const el = $('light-' + i);
+    el.className = 'round-light';
+    if (i < currentRound) {
+      el.classList.add('done');
+    } else if (i === currentRound) {
+      el.classList.add('active');
+      if (phase === 'rest') el.classList.add('rest');
+      else if (timeLeft <= WARN_TIME && timeLeft > 0) el.classList.add('warning');
+    }
+  }
+}
+
+function updateTimerUI() {
+  const display = $('timer-display');
+  const label = $('phase-label');
+  const sName = $('station-name');
+  const sDesc = $('station-desc');
+  const preview = $('next-preview');
+
+  display.textContent = formatTime(timeLeft);
+  display.className = 'timer-display';
+  label.className = 'phase-label';
+
+  if (phase === 'work') {
+    const round = currentWorkout.rounds[currentRound];
+    label.textContent = 'Round ' + (currentRound + 1);
+    sName.textContent = round.station;
+    sDesc.textContent = round.desc;
+
+    if (timeLeft <= WARN_TIME && timeLeft > 0) {
+      display.classList.add('warning');
+      label.classList.add('warning');
+    }
+
+    if (currentRound < TOTAL_ROUNDS - 1) {
+      preview.innerHTML = 'Next: <span>' + currentWorkout.rounds[currentRound + 1].station + '</span>';
+    } else {
+      preview.textContent = 'Final round!';
+    }
+  } else {
+    label.textContent = 'REST';
+    label.classList.add('rest');
+    display.classList.add('rest');
+    sName.textContent = '';
+    sDesc.textContent = 'Shake it out. Grab water.';
+    if (currentRound < TOTAL_ROUNDS) {
+      preview.innerHTML = 'Up next: <span>Round ' + (currentRound + 1) + ' \u2014 ' + currentWorkout.rounds[currentRound].station + '</span>';
+    }
+  }
+
+  updateRoundLights();
+}
+
+// ============================================================
+// TIMER LOGIC
+// ============================================================
+function tick() {
+  if (paused) return;
+  timeLeft--;
+
+  if (phase === 'work' && timeLeft === WARN_TIME) {
+    playWarningBeeps();
+  }
+
+  if (timeLeft <= 0) {
+    playBell();
+    if (phase === 'work') {
+      currentRound++;
+      if (currentRound >= TOTAL_ROUNDS) {
+        finishWorkout();
+        return;
+      }
+      phase = 'rest';
+      timeLeft = REST_TIME;
+    } else {
+      phase = 'work';
+      timeLeft = WORK_TIME;
+      playBell();
+    }
+  }
+
+  updateTimerUI();
+}
+
+function startTimer() {
+  if (interval) clearInterval(interval);
+  interval = setInterval(tick, 1000);
+  running = true;
+}
+
+function togglePause() {
+  paused = !paused;
+  $('pause-btn').textContent = paused ? 'Resume' : 'Pause';
+  $('pause-btn').className = paused ? 'ctrl-btn primary' : 'ctrl-btn primary';
+}
+
+function skipPhase() {
+  if (phase === 'work') {
+    currentRound++;
+    if (currentRound >= TOTAL_ROUNDS) {
+      finishWorkout();
+      return;
+    }
+    phase = 'rest';
+    timeLeft = REST_TIME;
+  } else {
+    phase = 'work';
+    timeLeft = WORK_TIME;
+  }
+  playBell();
+  updateTimerUI();
+}
+
+// ============================================================
+// WORKOUT FLOW
+// ============================================================
+function startWorkout(idx) {
+  // Init audio on user gesture
+  getAudio();
+
+  currentWorkout = WORKOUTS[idx];
+  currentRound = 0;
+  phase = 'work';
+  timeLeft = WORK_TIME;
+  paused = false;
+  $('pause-btn').textContent = 'Pause';
+
+  hide('select-screen');
+  hide('done-screen');
+  show('timer-screen');
+  buildRoundLights();
+
+  requestWakeLock();
+  workoutStartTime = Date.now();
+
+  // 3-2-1 countdown
+  show('countdown-overlay');
+  let count = 3;
+  $('countdown-num').textContent = count;
+  playBeep(600, 0.1, 1, 0);
+
+  const cdInterval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      $('countdown-num').textContent = count;
+      playBeep(600, 0.1, 1, 0);
+    } else {
+      clearInterval(cdInterval);
+      hide('countdown-overlay');
+      playBell();
+      updateTimerUI();
+      startTimer();
+    }
+  }, 1000);
+}
+
+function finishWorkout() {
+  clearInterval(interval);
+  interval = null;
+  running = false;
+  releaseWakeLock();
+
+  const elapsed = Math.floor((Date.now() - workoutStartTime) / 1000);
+  hide('timer-screen');
+  show('done-screen');
+  $('total-time').textContent = formatTime(elapsed);
+
+  playTripleBell();
+}
+
+function quitWorkout() {
+  clearInterval(interval);
+  interval = null;
+  running = false;
+  paused = false;
+  releaseWakeLock();
+  hide('timer-screen');
+  hide('countdown-overlay');
+  show('select-screen');
+}
+
+function backToSelect() {
+  hide('done-screen');
+  show('select-screen');
+}
+</script>
+</body>
+</html>
