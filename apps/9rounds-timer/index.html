@@ -27,6 +27,7 @@
   #select-screen{
     display:flex;flex-direction:column;align-items:center;
     justify-content:center;gap:20px;width:100%;padding:20px;
+    max-height:100vh;max-height:100dvh;overflow-y:auto;
   }
   #select-screen h1{
     font-size:2rem;font-weight:800;letter-spacing:-.02em;
@@ -160,6 +161,94 @@
     position:fixed;top:8px;right:12px;font-size:.7rem;
     color:#333;pointer-events:none;
   }
+
+  /* --- Generate Workout --- */
+  .divider{
+    width:min(90%,360px);display:flex;align-items:center;gap:12px;
+    color:#444;font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;
+  }
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:#222}
+
+  .generate-btn{
+    width:min(90%,360px);padding:18px 24px;border:2px solid #222;
+    border-radius:14px;background:linear-gradient(135deg,#111 0%,#0a0f1a 100%);
+    color:#fff;font-size:1.1rem;font-weight:600;cursor:pointer;
+    transition:all .15s;text-align:left;position:relative;overflow:hidden;
+  }
+  .generate-btn:hover,.generate-btn:active{
+    border-color:#00bbff;background:linear-gradient(135deg,#0a1520 0%,#0a0f1a 100%);
+    transform:scale(1.02);
+  }
+  .generate-btn .day{color:#00bbff;font-size:.8rem;font-weight:700;
+    text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+
+  /* Generate modal */
+  #generate-modal{
+    display:none;position:fixed;inset:0;background:#0a0a0fee;
+    z-index:200;align-items:center;justify-content:center;
+    flex-direction:column;padding:20px;
+  }
+  .gen-card{
+    background:#111;border:1px solid #222;border-radius:18px;
+    padding:28px 24px;width:min(95%,400px);max-height:90vh;
+    overflow-y:auto;display:flex;flex-direction:column;gap:20px;
+  }
+  .gen-card h2{
+    font-size:1.4rem;font-weight:800;text-align:center;
+    background:linear-gradient(135deg,#00ff88,#00bbff);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  .gen-section{display:flex;flex-direction:column;gap:8px}
+  .gen-section label{font-size:.8rem;font-weight:700;color:#888;
+    text-transform:uppercase;letter-spacing:.08em}
+  .gen-chips{display:flex;flex-wrap:wrap;gap:8px}
+  .gen-chip{
+    padding:10px 16px;border:2px solid #222;border-radius:10px;
+    background:#0a0a0f;color:#aaa;font-size:.9rem;font-weight:600;
+    cursor:pointer;transition:all .15s;
+  }
+  .gen-chip:hover{border-color:#444}
+  .gen-chip.selected{border-color:#00ff88;color:#00ff88;background:#0a1a10}
+  .gen-chip.selected-blue{border-color:#00bbff;color:#00bbff;background:#0a1020}
+
+  .equip-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .equip-toggle{
+    padding:10px 12px;border:2px solid #222;border-radius:10px;
+    background:#0a0a0f;color:#666;font-size:.85rem;font-weight:600;
+    cursor:pointer;transition:all .15s;text-align:center;
+  }
+  .equip-toggle:hover{border-color:#444}
+  .equip-toggle.on{border-color:#00ff88;color:#00ff88;background:#0a1a10}
+
+  .gen-actions{display:flex;gap:12px}
+  .gen-actions .ctrl-btn{flex:1;text-align:center}
+
+  .api-key-row{display:flex;gap:8px}
+  .api-key-row input{
+    flex:1;padding:10px 14px;border:2px solid #222;border-radius:10px;
+    background:#0a0a0f;color:#fff;font-size:.9rem;font-family:inherit;
+    outline:none;transition:border-color .15s;
+  }
+  .api-key-row input:focus{border-color:#00bbff}
+  .api-key-row input::placeholder{color:#444}
+  .api-key-saved{font-size:.75rem;color:#00ff88;display:none}
+
+  /* Loading state */
+  .gen-loading{
+    display:none;flex-direction:column;align-items:center;gap:16px;
+    padding:20px 0;
+  }
+  .gen-loading.active{display:flex}
+  .gen-spinner{
+    width:40px;height:40px;border:3px solid #222;
+    border-top-color:#00bbff;border-radius:50%;
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .gen-loading p{color:#888;font-size:.9rem;text-align:center}
+  .gen-error{color:#ff4444;font-size:.85rem;text-align:center;display:none}
+  .gen-form.hidden{display:none}
 </style>
 </head>
 <body>
@@ -184,6 +273,58 @@
     <div class="day">Freestyle</div>
     <div class="name">Full Body Brawler</div>
   </button>
+  <div class="divider">or</div>
+  <button class="generate-btn" onclick="openGenerator()">
+    <div class="day">AI Generated</div>
+    <div class="name">Build Me a Workout</div>
+  </button>
+</div>
+
+<!-- Generate Workout Modal -->
+<div id="generate-modal">
+  <div class="gen-card">
+    <h2>Generate Workout</h2>
+    <div class="gen-form" id="gen-form">
+      <div class="gen-section">
+        <label>Focus</label>
+        <div class="gen-chips" id="focus-chips">
+          <div class="gen-chip selected" data-val="surprise" onclick="selectFocus(this)">Surprise Me</div>
+          <div class="gen-chip" data-val="push" onclick="selectFocus(this)">Push</div>
+          <div class="gen-chip" data-val="pull" onclick="selectFocus(this)">Pull</div>
+          <div class="gen-chip" data-val="legs" onclick="selectFocus(this)">Legs</div>
+          <div class="gen-chip" data-val="full" onclick="selectFocus(this)">Full Body</div>
+          <div class="gen-chip" data-val="cardio" onclick="selectFocus(this)">Cardio Heavy</div>
+        </div>
+      </div>
+      <div class="gen-section">
+        <label>Equipment Available</label>
+        <div class="equip-grid" id="equip-grid">
+          <div class="equip-toggle on" data-equip="barbell" onclick="toggleEquip(this)">Barbell</div>
+          <div class="equip-toggle on" data-equip="bench" onclick="toggleEquip(this)">Bench</div>
+          <div class="equip-toggle on" data-equip="rings" onclick="toggleEquip(this)">Rings</div>
+          <div class="equip-toggle on" data-equip="pull-up bar" onclick="toggleEquip(this)">Pull-up Bar</div>
+          <div class="equip-toggle on" data-equip="heavy bag" onclick="toggleEquip(this)">Heavy Bag</div>
+          <div class="equip-toggle on" data-equip="dumbbells" onclick="toggleEquip(this)">Dumbbells</div>
+        </div>
+      </div>
+      <div class="gen-section">
+        <label>OpenRouter API Key</label>
+        <div class="api-key-row">
+          <input type="password" id="api-key-input" placeholder="sk-or-v1-..." autocomplete="off">
+        </div>
+        <div class="api-key-saved" id="api-key-saved">Key saved</div>
+      </div>
+      <div class="gen-error" id="gen-error"></div>
+      <div class="gen-actions">
+        <button class="ctrl-btn secondary" onclick="closeGenerator()">Cancel</button>
+        <button class="ctrl-btn primary" onclick="generateWorkout()">Generate</button>
+      </div>
+    </div>
+    <div class="gen-loading" id="gen-loading">
+      <div class="gen-spinner"></div>
+      <p>Building your workout...</p>
+    </div>
+  </div>
 </div>
 
 <!-- Timer -->
@@ -603,6 +744,176 @@ function quitWorkout() {
 function backToSelect() {
   hide('done-screen');
   show('select-screen');
+}
+
+// ============================================================
+// WORKOUT GENERATOR (OpenRouter)
+// ============================================================
+const GEN_MODEL = 'google/gemini-2.0-flash-001';
+let selectedFocus = 'surprise';
+
+function openGenerator() {
+  const saved = localStorage.getItem('openrouter_key');
+  if (saved) {
+    $('api-key-input').value = saved;
+    $('api-key-saved').style.display = 'block';
+  }
+  $('gen-error').style.display = 'none';
+  $('gen-form').classList.remove('hidden');
+  $('gen-loading').classList.remove('active');
+  show('generate-modal');
+}
+
+function closeGenerator() {
+  hide('generate-modal');
+}
+
+function selectFocus(el) {
+  document.querySelectorAll('#focus-chips .gen-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedFocus = el.dataset.val;
+}
+
+function toggleEquip(el) {
+  el.classList.toggle('on');
+}
+
+function getSelectedEquipment() {
+  return Array.from(document.querySelectorAll('#equip-grid .equip-toggle.on'))
+    .map(el => el.dataset.equip);
+}
+
+async function generateWorkout() {
+  const apiKey = $('api-key-input').value.trim();
+  if (!apiKey) {
+    $('gen-error').textContent = 'Enter your OpenRouter API key';
+    $('gen-error').style.display = 'block';
+    return;
+  }
+  localStorage.setItem('openrouter_key', apiKey);
+  $('api-key-saved').style.display = 'block';
+
+  const equipment = getSelectedEquipment();
+  if (equipment.length === 0) {
+    $('gen-error').textContent = 'Select at least one piece of equipment';
+    $('gen-error').style.display = 'block';
+    return;
+  }
+
+  $('gen-error').style.display = 'none';
+  $('gen-form').classList.add('hidden');
+  $('gen-loading').classList.add('active');
+
+  const focusMap = {
+    surprise: 'a random focus of your choice (push, pull, legs, full body, or something creative)',
+    push: 'push muscles (chest, shoulders, triceps)',
+    pull: 'pull muscles (back, biceps)',
+    legs: 'legs and lower body',
+    full: 'full body',
+    cardio: 'cardio-heavy with minimal rest, high intensity',
+  };
+
+  const prompt = `You are a workout program designer for a home gym hybrid boxing + lifting program.
+
+The user has this equipment: ${equipment.join(', ')}.
+${equipment.includes('heavy bag') ? 'Heavy bag rounds should be mixed in between lifting rounds as active recovery/cardio.' : ''}
+
+Generate a 9-round workout focused on: ${focusMap[selectedFocus]}.
+
+Rules:
+- Exactly 9 rounds. Each round is 3 minutes of work followed by 90 sec rest.
+- Round 1 is always a warm-up.
+- Round 9 is always a core/cooldown finisher.
+- ${equipment.includes('heavy bag') ? 'Alternate lifting rounds and bag rounds (rounds 2-8). Bag rounds should include specific boxing combos using numbers (1=jab, 2=cross, 3=lead hook, 4=rear hook, 5=lead uppercut, 6=rear uppercut).' : 'Fill all 9 rounds with exercises using the available equipment.'}
+- Each round needs a short station name (2-5 words) and a detailed description with specific sets, reps, and coaching cues.
+- Be creative - don't repeat the same exercises every time. Mix it up.
+- Write in a motivating, direct, no-BS coaching voice.
+
+Respond with ONLY valid JSON, no markdown, no code fences. Use this exact format:
+{
+  "name": "Workout Name Here",
+  "rounds": [
+    {"station": "Station Name", "desc": "Detailed description with sets, reps, and cues."},
+    ... (9 total)
+  ]
+}`;
+
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: GEN_MODEL,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 1.0,
+        max_tokens: 2000,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || 'API error ' + res.status);
+    }
+
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) throw new Error('Empty response from API');
+
+    // Parse JSON - strip markdown fences if model adds them
+    const cleaned = content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    const workout = JSON.parse(cleaned);
+
+    if (!workout.rounds || workout.rounds.length !== 9) {
+      throw new Error('Invalid workout format (expected 9 rounds, got ' + (workout.rounds?.length || 0) + ')');
+    }
+
+    // Launch it
+    hide('generate-modal');
+    currentWorkout = workout;
+    currentRound = 0;
+    phase = 'work';
+    timeLeft = WORK_TIME;
+    paused = false;
+    $('pause-btn').textContent = 'Pause';
+
+    hide('select-screen');
+    hide('done-screen');
+    show('timer-screen');
+    buildRoundLights();
+    requestWakeLock();
+    workoutStartTime = Date.now();
+
+    // Init audio on user gesture
+    getAudio();
+
+    // 3-2-1 countdown
+    show('countdown-overlay');
+    let count = 3;
+    $('countdown-num').textContent = count;
+    playBeep(600, 0.1, 1, 0);
+    const cdInterval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        $('countdown-num').textContent = count;
+        playBeep(600, 0.1, 1, 0);
+      } else {
+        clearInterval(cdInterval);
+        hide('countdown-overlay');
+        playBell();
+        updateTimerUI();
+        startTimer();
+      }
+    }, 1000);
+
+  } catch (e) {
+    $('gen-loading').classList.remove('active');
+    $('gen-form').classList.remove('hidden');
+    $('gen-error').textContent = e.message || 'Something went wrong';
+    $('gen-error').style.display = 'block';
+  }
 }
 </script>
 </body>
