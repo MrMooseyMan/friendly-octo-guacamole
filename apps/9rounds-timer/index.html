@@ -16,18 +16,34 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:center;
+    justify-content:flex-start;
     min-height:100vh;
     min-height:100dvh;
     -webkit-tap-highlight-color:transparent;
     user-select:none;
   }
 
+  /* --- Nav Tabs --- */
+  .nav-tabs{
+    display:flex;width:100%;max-width:420px;
+    padding:12px 20px 0;gap:4px;flex-shrink:0;
+  }
+  .nav-tab{
+    flex:1;padding:10px 0;border:none;border-radius:10px 10px 0 0;
+    font-size:.85rem;font-weight:700;cursor:pointer;
+    text-transform:uppercase;letter-spacing:.08em;
+    transition:all .15s;background:transparent;color:#555;
+    border-bottom:2px solid transparent;
+  }
+  .nav-tab.active{color:#00ff88;border-bottom-color:#00ff88}
+  .nav-tab:not(.active):hover{color:#888}
+  .nav-tabs.hidden{display:none}
+
   /* --- Workout Select Screen --- */
   #select-screen{
     display:flex;flex-direction:column;align-items:center;
-    justify-content:center;gap:20px;width:100%;padding:20px;
-    max-height:100vh;max-height:100dvh;overflow-y:auto;
+    justify-content:flex-start;gap:20px;width:100%;padding:20px;
+    flex:1;overflow-y:auto;
   }
   #select-screen h1{
     font-size:2rem;font-weight:800;letter-spacing:-.02em;
@@ -47,6 +63,7 @@
   .workout-btn .day{color:#00ff88;font-size:.8rem;font-weight:700;
     text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
   .workout-btn .name{font-size:1.15rem}
+  .workout-btn .week-weight{font-size:.75rem;color:#888;margin-top:4px}
 
   /* --- Timer Screen --- */
   #timer-screen{
@@ -249,35 +266,308 @@
   .gen-loading p{color:#888;font-size:.9rem;text-align:center}
   .gen-error{color:#ff4444;font-size:.85rem;text-align:center;display:none}
   .gen-form.hidden{display:none}
+
+  /* --- Dashboard Screen --- */
+  #dashboard-screen{
+    display:none;flex-direction:column;align-items:center;
+    width:100%;padding:20px;flex:1;overflow-y:auto;
+    gap:20px;padding-bottom:40px;
+  }
+  .dash-header{
+    text-align:center;width:100%;max-width:380px;
+  }
+  .dash-header h1{
+    font-size:1.8rem;font-weight:800;letter-spacing:-.02em;
+    background:linear-gradient(135deg,#00ff88,#00bbff);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;margin-bottom:4px;
+  }
+  .dash-header .subtitle{color:#888;font-size:.85rem}
+  .dash-header .week-big{
+    font-size:3.5rem;font-weight:900;color:#fff;margin:12px 0 4px;
+    line-height:1;
+  }
+  .dash-header .week-label{
+    font-size:.85rem;color:#00ff88;font-weight:700;
+    text-transform:uppercase;letter-spacing:.1em;
+  }
+
+  /* Progress bar */
+  .progress-bar-wrap{
+    width:100%;max-width:380px;height:8px;background:#1a1a22;
+    border-radius:4px;overflow:hidden;margin-top:8px;
+  }
+  .progress-bar-fill{
+    height:100%;background:linear-gradient(90deg,#00ff88,#00bbff);
+    border-radius:4px;transition:width .5s ease;
+  }
+  .progress-dates{
+    display:flex;justify-content:space-between;width:100%;max-width:380px;
+    font-size:.7rem;color:#555;margin-top:4px;
+  }
+
+  /* Dashboard cards */
+  .dash-card{
+    width:100%;max-width:380px;background:#111;
+    border:1px solid #1a1a22;border-radius:14px;
+    padding:20px;
+  }
+  .dash-card h3{
+    font-size:.8rem;font-weight:700;color:#00ff88;
+    text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;
+  }
+  .dash-card h3.blue{color:#00bbff}
+  .dash-card h3.orange{color:#ffaa00}
+
+  /* Lift targets */
+  .lift-group{margin-bottom:14px}
+  .lift-group:last-child{margin-bottom:0}
+  .lift-group-label{
+    font-size:.7rem;color:#555;text-transform:uppercase;
+    letter-spacing:.08em;margin-bottom:6px;
+  }
+  .lift-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:6px 0;border-bottom:1px solid #1a1a22;
+  }
+  .lift-row:last-child{border-bottom:none}
+  .lift-name{font-size:.9rem;color:#ccc}
+  .lift-target{
+    font-size:.9rem;font-weight:700;color:#fff;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* Nutrition targets */
+  .nutrition-grid{display:flex;flex-direction:column;gap:10px}
+  .nutrition-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 12px;background:#0a0a0f;border-radius:8px;
+  }
+  .nutrition-label{font-size:.85rem;color:#aaa}
+  .nutrition-value{font-size:.95rem;font-weight:700;color:#fff}
+
+  /* Check-in form */
+  .checkin-form{display:flex;flex-direction:column;gap:12px}
+  .checkin-row{display:flex;align-items:center;gap:10px}
+  .checkin-row label{
+    font-size:.85rem;color:#aaa;width:60px;flex-shrink:0;
+  }
+  .checkin-row input{
+    flex:1;padding:10px 14px;border:2px solid #222;border-radius:10px;
+    background:#0a0a0f;color:#fff;font-size:1rem;font-family:inherit;
+    outline:none;transition:border-color .15s;
+    font-variant-numeric:tabular-nums;
+  }
+  .checkin-row input:focus{border-color:#00ff88}
+  .checkin-row .unit{font-size:.8rem;color:#555;width:30px}
+  .checkin-save{
+    padding:12px;border:none;border-radius:10px;
+    background:#00ff88;color:#000;font-size:.95rem;font-weight:700;
+    cursor:pointer;transition:all .15s;
+  }
+  .checkin-save:active{background:#00dd77;transform:scale(.97)}
+  .checkin-saved-msg{
+    font-size:.8rem;color:#00ff88;text-align:center;
+    display:none;margin-top:4px;
+  }
+
+  /* Check-in history */
+  .history-table{width:100%}
+  .history-row{
+    display:flex;justify-content:space-between;
+    padding:8px 0;border-bottom:1px solid #1a1a22;
+    font-size:.85rem;
+  }
+  .history-row:last-child{border-bottom:none}
+  .history-week{color:#00ff88;font-weight:700;width:65px}
+  .history-weight{color:#fff;font-weight:600;width:70px;text-align:center}
+  .history-waist{color:#fff;font-weight:600;width:70px;text-align:center}
+  .history-header{color:#555;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em}
+  .history-empty{color:#444;font-size:.85rem;text-align:center;padding:16px 0}
+
+  /* Rules card */
+  .rules-list{display:flex;flex-direction:column;gap:8px}
+  .rule-item{
+    display:flex;align-items:flex-start;gap:10px;
+    font-size:.85rem;color:#ccc;line-height:1.4;
+  }
+  .rule-check{color:#00ff88;font-weight:700;flex-shrink:0;margin-top:1px}
+  .rule-item.warn .rule-check{color:#ff4444}
 </style>
 </head>
 <body>
 
+<!-- Nav Tabs -->
+<div class="nav-tabs" id="nav-tabs">
+  <button class="nav-tab active" id="tab-workouts" onclick="switchTab('workouts')">Workouts</button>
+  <button class="nav-tab" id="tab-dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+</div>
+
 <!-- Workout Select -->
 <div id="select-screen">
   <h1>Home 9 Rounds</h1>
-  <p>Pick your workout</p>
+  <p id="week-subtitle">Pick your workout</p>
   <button class="workout-btn" onclick="startWorkout(0)">
     <div class="day">Push Day</div>
     <div class="name">Chest, Shoulders, Triceps + Bag</div>
+    <div class="week-weight" id="push-weight-hint"></div>
   </button>
   <button class="workout-btn" onclick="startWorkout(1)">
     <div class="day">Pull Day</div>
     <div class="name">Back, Biceps + Bag</div>
+    <div class="week-weight" id="pull-weight-hint"></div>
   </button>
   <button class="workout-btn" onclick="startWorkout(2)">
     <div class="day">Leg Day</div>
     <div class="name">Legs, Arms + Bag</div>
+    <div class="week-weight" id="leg-weight-hint"></div>
   </button>
   <button class="workout-btn" onclick="startWorkout(3)">
     <div class="day">Freestyle</div>
     <div class="name">Full Body Brawler</div>
+    <div class="week-weight"></div>
   </button>
   <div class="divider">or</div>
   <button class="generate-btn" onclick="openGenerator()">
     <div class="day">AI Generated</div>
     <div class="name">Build Me a Workout</div>
   </button>
+</div>
+
+<!-- Dashboard Screen -->
+<div id="dashboard-screen">
+  <div class="dash-header">
+    <h1>8-Week Recomp</h1>
+    <div class="subtitle">Feb 16 - Apr 12, 2026</div>
+    <div class="week-big" id="dash-week-num">1</div>
+    <div class="week-label" id="dash-week-label">Week 1 of 8</div>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="progress-dates">
+    <span>Feb 16</span>
+    <span>Apr 12</span>
+  </div>
+
+  <!-- This Week's Targets -->
+  <div class="dash-card">
+    <h3>This Week's Weights</h3>
+    <div class="lift-group">
+      <div class="lift-group-label">Push Day</div>
+      <div class="lift-row">
+        <span class="lift-name">Bench Press</span>
+        <span class="lift-target" id="t-bench">45 lbs</span>
+      </div>
+      <div class="lift-row">
+        <span class="lift-name">Overhead Press</span>
+        <span class="lift-target" id="t-ohp">45 lbs</span>
+      </div>
+    </div>
+    <div class="lift-group">
+      <div class="lift-group-label">Pull Day</div>
+      <div class="lift-row">
+        <span class="lift-name">Pull-ups</span>
+        <span class="lift-target" id="t-pullups">AMRAP</span>
+      </div>
+      <div class="lift-row">
+        <span class="lift-name">Barbell Rows</span>
+        <span class="lift-target" id="t-rows">45 lbs</span>
+      </div>
+    </div>
+    <div class="lift-group">
+      <div class="lift-group-label">Leg Day</div>
+      <div class="lift-row">
+        <span class="lift-name">Squats</span>
+        <span class="lift-target" id="t-squat">45 lbs</span>
+      </div>
+      <div class="lift-row">
+        <span class="lift-name">Romanian Deadlifts</span>
+        <span class="lift-target" id="t-rdl">45 lbs</span>
+      </div>
+    </div>
+    <div class="lift-group">
+      <div class="lift-group-label">Volume</div>
+      <div class="lift-row">
+        <span class="lift-name">Sets x Reps</span>
+        <span class="lift-target" id="t-volume">3 x 10</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nutrition -->
+  <div class="dash-card">
+    <h3 class="blue">Daily Targets</h3>
+    <div class="nutrition-grid">
+      <div class="nutrition-row">
+        <span class="nutrition-label">Calories</span>
+        <span class="nutrition-value">2,400 - 2,600</span>
+      </div>
+      <div class="nutrition-row">
+        <span class="nutrition-label">Protein</span>
+        <span class="nutrition-value">160 - 180g</span>
+      </div>
+      <div class="nutrition-row">
+        <span class="nutrition-label">Steps</span>
+        <span class="nutrition-value">8,000 - 10,000</span>
+      </div>
+      <div class="nutrition-row">
+        <span class="nutrition-label">Water</span>
+        <span class="nutrition-value">1 gallon</span>
+      </div>
+      <div class="nutrition-row">
+        <span class="nutrition-label">Sleep</span>
+        <span class="nutrition-value">7 - 8 hours</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weekly Check-in -->
+  <div class="dash-card">
+    <h3 class="orange">Weekly Check-in</h3>
+    <div class="checkin-form">
+      <div class="checkin-row">
+        <label>Weight</label>
+        <input type="number" id="checkin-weight" placeholder="200" step="0.1" inputmode="decimal">
+        <span class="unit">lbs</span>
+      </div>
+      <div class="checkin-row">
+        <label>Waist</label>
+        <input type="number" id="checkin-waist" placeholder="36" step="0.25" inputmode="decimal">
+        <span class="unit">in</span>
+      </div>
+      <button class="checkin-save" onclick="saveCheckin()">Save Week <span id="checkin-week-num">1</span> Check-in</button>
+      <div class="checkin-saved-msg" id="checkin-saved-msg">Saved!</div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="dash-card">
+    <h3>Progress</h3>
+    <div class="history-table">
+      <div class="history-row">
+        <span class="history-week history-header">Week</span>
+        <span class="history-weight history-header">Weight</span>
+        <span class="history-waist history-header">Waist</span>
+      </div>
+      <div id="history-rows"></div>
+    </div>
+  </div>
+
+  <!-- Rules -->
+  <div class="dash-card">
+    <h3>Non-Negotiables</h3>
+    <div class="rules-list">
+      <div class="rule-item"><span class="rule-check">+</span>Hit calorie target 6/7 days</div>
+      <div class="rule-item"><span class="rule-check">+</span>160g+ protein daily</div>
+      <div class="rule-item"><span class="rule-check">+</span>4 lifting sessions per week</div>
+      <div class="rule-item"><span class="rule-check">+</span>8k+ steps daily (Fitbit)</div>
+      <div class="rule-item"><span class="rule-check">+</span>7+ hours sleep</div>
+      <div class="rule-item warn"><span class="rule-check">x</span>No alcohol</div>
+      <div class="rule-item warn"><span class="rule-check">x</span>No liquid calories</div>
+      <div class="rule-item warn"><span class="rule-check">x</span>No cheat days</div>
+    </div>
+  </div>
 </div>
 
 <!-- Generate Workout Modal -->
@@ -362,66 +652,103 @@
 
 <script>
 // ============================================================
-// WORKOUT DATA
+// 8-WEEK RECOMP PROGRAM
 // ============================================================
-const WORKOUTS = [
-  { // Push Day
-    name: "Push Day 9 Rounds",
-    rounds: [
-      { station: "Warm-up", desc: "High knees 30s, shadow boxing 1 min, arm circles + bodyweight squats 30s, shadow box 1 min. Get loose, get warm." },
-      { station: "Barbell Bench Press", desc: "3x10 (Phase 1) / 4x8 (Phase 2+). Rest 60-90 sec between sets." },
-      { station: "Bag - Jab/Cross", desc: "1-2 combos, move your feet. Shake out the bench pump. Stay light, find your rhythm." },
-      { station: "Overhead Press", desc: "3x8 (Phase 1) / 4x8 (Phase 2+). Strict form, no leg drive." },
-      { station: "Bag - Speed Round", desc: "Light, fast punches - high volume. 1-1-2, 1-2-3, 1-2-1-2. Don't load up, just stay busy. Circle the bag." },
-      { station: "Ring Push-ups + Ring Dips", desc: "Ring push-ups 3x10, then ring dips 2x8. Superset - push-ups into dips, rest, repeat." },
-      { station: "Bag - Power Round", desc: "Controlled hooks and uppercuts. 3-2-3, 5-6-5. Snap and retract at 70-80%. 10 sec burst, 5 sec reset." },
-      { station: "Dumbbell Curls", desc: "3x12. Slow negatives. Squeeze at the top. Arms should be screaming." },
-      { station: "Core Burnout", desc: "45s plank, 20 bicycle crunches, 15 leg raises, 10 V-ups. Rest 30 sec. Repeat x2." },
-    ]
-  },
-  { // Pull Day
-    name: "Pull Day 9 Rounds",
-    rounds: [
-      { station: "Warm-up", desc: "Shadow boxing 2 min (move your feet, throw light combos), high knees 30s, fast feet 30s." },
-      { station: "Pull-ups", desc: "3xAMRAP (Phase 1) / 4xAMRAP (Phase 2+). Rest 90 sec between sets. Use a band if needed." },
-      { station: "Bag - 1-2-3 Combos", desc: "Jab-cross-hook. Focus on the hook rotation. Circle the bag between combos." },
-      { station: "Barbell Rows", desc: "3x10 (Phase 1) / 4x8 (Phase 2+). Squeeze your shoulder blades at the top." },
-      { station: "Bag - Body Shots", desc: "Throw 1-2 up top, then dip and throw 2 body hooks. Practice level changes - head, body, head, body." },
-      { station: "Ring Rows", desc: "3x10. Feet elevated if you can. Slow and controlled - 2 sec up, 2 sec down." },
-      { station: "Bag - Full Combos", desc: "1-2-3-2, 1-2-5-2, 1-2-3-6-3-2. Let everything fly. Move your feet. Hands UP between combos." },
-      { station: "DB Hammer Curls + Ring Hold", desc: "Hammer curls 3x12, then ring support hold 3x20 sec. Arms will be shaking." },
-      { station: "Core Burnout", desc: "Hanging knee raises x15, plank 45s, Russian twists x20. Rest 30 sec. Repeat x2." },
-    ]
-  },
-  { // Legs
-    name: "Legs + Bag 9 Rounds",
-    rounds: [
-      { station: "Warm-up", desc: "High knees 30s, butt kicks 30s, lateral hops 30s, bodyweight squats 30s, shadow boxing 1 min." },
-      { station: "Barbell Squats", desc: "3x10 (Phase 1) / 4x8 (Phase 2+). Full depth. Control the descent." },
-      { station: "Bag - Jab/Cross/Hook", desc: "1-2-3 combos. Legs are heavy from squats - plant your feet and rotate through the hips." },
-      { station: "Romanian Deadlifts", desc: "3x8 (Phase 1) / 4x8 (Phase 2+). Slow negative, feel the hamstring stretch." },
-      { station: "Bag - Uppercuts + Body", desc: "5-6 uppercut combos with body hooks. Get low, bend knees, drive up through the legs." },
-      { station: "Calf Raises + Squat Jumps", desc: "Calf raises 2x15, then squat jumps 2x10. Explosive on the jumps." },
-      { station: "Bag - Power Round", desc: "Controlled hooks and uppercuts. 3-2-3, 5-6-5. Snap and retract at 70-80%. Stay composed." },
-      { station: "BB Curls + Ring Dips", desc: "3x10 each. Curl, straight to dips, rest, repeat. Arm pump to finish." },
-      { station: "Core Burnout", desc: "Barbell rollouts x10 (or ab wheel), side plank 30s/side, flutter kicks 30s. Rest 30 sec. Repeat x2." },
-    ]
-  },
-  { // Freestyle
-    name: "Full Body Brawler",
-    rounds: [
-      { station: "Warm-up", desc: "Shadow boxing 2 min (throw real combos, move around), high knees 30s, fast feet 30s." },
-      { station: "Pick a Compound Lift", desc: "Bench, squats, rows, OHP - whatever you feel like. Do 3x8." },
-      { station: "Bag - Freestyle", desc: "Whatever you want. Combos, power shots, body work, movement. Just flow." },
-      { station: "Pick a Ring Exercise", desc: "Push-ups, dips, rows, support holds - dealer's choice. 3 sets." },
-      { station: "Bag - Speed Round", desc: "Light and fast. Nonstop volume punching. 1-2s, 1-1-2s. Don't stop. Cardio round." },
-      { station: "Pick an Isolation Lift", desc: "Curls, hammer curls, calf raises, RDLs - whatever's lagging. 3x12." },
-      { station: "Bag - War Round", desc: "3 min at 80%. Championship round. Best combos, best footwork, best form. Finish strong." },
-      { station: "Pull-ups + Push-ups", desc: "Alternate: pull-up set, push-up set. 3 rounds. No rest between the two." },
-      { station: "Core + Stretch", desc: "5 min core circuit (your choice), then 5 min stretching. Cool down. You earned it." },
-    ]
-  }
-];
+const RECOMP_START = new Date('2026-02-16T00:00:00');
+const RECOMP_WEEKS = 8;
+
+function getCurrentWeek() {
+  const now = new Date();
+  const diffMs = now - RECOMP_START;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const week = Math.floor(diffDays / 7) + 1;
+  return Math.min(Math.max(week, 1), RECOMP_WEEKS);
+}
+
+function getWeekTargets(week) {
+  const upperWeight = 45 + (week - 1) * 5;   // +5 lbs/week
+  const lowerWeight = 45 + (week - 1) * 10;  // +10 lbs/week
+  const sets = week <= 2 ? 3 : 4;
+  const compoundReps = week <= 2 ? 10 : (week <= 6 ? 8 : 6);
+  const pullupSets = week <= 2 ? 3 : 4;
+
+  return {
+    bench: upperWeight,
+    ohp: upperWeight,
+    rows: upperWeight,
+    squat: lowerWeight,
+    rdl: lowerWeight,
+    sets,
+    reps: compoundReps,
+    pullupSets,
+    volumeLabel: sets + ' x ' + compoundReps,
+  };
+}
+
+// ============================================================
+// DYNAMIC WORKOUT DATA
+// ============================================================
+function buildWorkouts(week) {
+  const t = getWeekTargets(week);
+  return [
+    { // Push Day
+      name: "Push Day 9 Rounds",
+      rounds: [
+        { station: "Warm-up", desc: "High knees 30s, shadow boxing 1 min, arm circles + bodyweight squats 30s, shadow box 1 min. Get loose, get warm." },
+        { station: "Barbell Bench Press", desc: t.sets + "x" + t.reps + " @ " + t.bench + " lbs. Rest 60-90 sec between sets. Control the descent, explode up." },
+        { station: "Bag - Jab/Cross", desc: "1-2 combos, move your feet. Shake out the bench pump. Stay light, find your rhythm." },
+        { station: "Overhead Press", desc: t.sets + "x" + t.reps + " @ " + t.ohp + " lbs. Strict form, no leg drive. Brace your core." },
+        { station: "Bag - Speed Round", desc: "Light, fast punches - high volume. 1-1-2, 1-2-3, 1-2-1-2. Don't load up, just stay busy. Circle the bag." },
+        { station: "Ring Push-ups + Ring Dips", desc: "Ring push-ups 3x10, then ring dips 2x8. Superset - push-ups into dips, rest, repeat." },
+        { station: "Bag - Power Round", desc: "Controlled hooks and uppercuts. 3-2-3, 5-6-5. Snap and retract at 70-80%. 10 sec burst, 5 sec reset." },
+        { station: "Dumbbell Curls", desc: "3x12. Slow negatives. Squeeze at the top. Arms should be screaming." },
+        { station: "Core Burnout", desc: "45s plank, 20 bicycle crunches, 15 leg raises, 10 V-ups. Rest 30 sec. Repeat x2." },
+      ]
+    },
+    { // Pull Day
+      name: "Pull Day 9 Rounds",
+      rounds: [
+        { station: "Warm-up", desc: "Shadow boxing 2 min (move your feet, throw light combos), high knees 30s, fast feet 30s." },
+        { station: "Pull-ups", desc: t.pullupSets + "xAMRAP. Rest 90 sec between sets. Use a band if needed. Beat last week's reps." },
+        { station: "Bag - 1-2-3 Combos", desc: "Jab-cross-hook. Focus on the hook rotation. Circle the bag between combos." },
+        { station: "Barbell Rows", desc: t.sets + "x" + t.reps + " @ " + t.rows + " lbs. Squeeze your shoulder blades at the top. No body English." },
+        { station: "Bag - Body Shots", desc: "Throw 1-2 up top, then dip and throw 2 body hooks. Practice level changes - head, body, head, body." },
+        { station: "Ring Rows", desc: "3x10. Feet elevated if you can. Slow and controlled - 2 sec up, 2 sec down." },
+        { station: "Bag - Full Combos", desc: "1-2-3-2, 1-2-5-2, 1-2-3-6-3-2. Let everything fly. Move your feet. Hands UP between combos." },
+        { station: "DB Hammer Curls + Ring Hold", desc: "Hammer curls 3x12, then ring support hold 3x20 sec. Arms will be shaking." },
+        { station: "Core Burnout", desc: "Hanging knee raises x15, plank 45s, Russian twists x20. Rest 30 sec. Repeat x2." },
+      ]
+    },
+    { // Legs
+      name: "Legs + Bag 9 Rounds",
+      rounds: [
+        { station: "Warm-up", desc: "High knees 30s, butt kicks 30s, lateral hops 30s, bodyweight squats 30s, shadow boxing 1 min." },
+        { station: "Barbell Squats", desc: t.sets + "x" + t.reps + " @ " + t.squat + " lbs. Full depth. Control the descent. Drive through your heels." },
+        { station: "Bag - Jab/Cross/Hook", desc: "1-2-3 combos. Legs are heavy from squats - plant your feet and rotate through the hips." },
+        { station: "Romanian Deadlifts", desc: t.sets + "x" + t.reps + " @ " + t.rdl + " lbs. Slow negative, feel the hamstring stretch. Hinge at the hips." },
+        { station: "Bag - Uppercuts + Body", desc: "5-6 uppercut combos with body hooks. Get low, bend knees, drive up through the legs." },
+        { station: "Calf Raises + Squat Jumps", desc: "Calf raises 2x15, then squat jumps 2x10. Explosive on the jumps." },
+        { station: "Bag - Power Round", desc: "Controlled hooks and uppercuts. 3-2-3, 5-6-5. Snap and retract at 70-80%. Stay composed." },
+        { station: "BB Curls + Ring Dips", desc: "3x10 each. Curl, straight to dips, rest, repeat. Arm pump to finish." },
+        { station: "Core Burnout", desc: "Barbell rollouts x10 (or ab wheel), side plank 30s/side, flutter kicks 30s. Rest 30 sec. Repeat x2." },
+      ]
+    },
+    { // Freestyle
+      name: "Full Body Brawler",
+      rounds: [
+        { station: "Warm-up", desc: "Shadow boxing 2 min (throw real combos, move around), high knees 30s, fast feet 30s." },
+        { station: "Pick a Compound Lift", desc: "Bench (" + t.bench + " lbs), squats (" + t.squat + " lbs), rows (" + t.rows + " lbs), or OHP (" + t.ohp + " lbs). Do " + t.sets + "x" + t.reps + "." },
+        { station: "Bag - Freestyle", desc: "Whatever you want. Combos, power shots, body work, movement. Just flow." },
+        { station: "Pick a Ring Exercise", desc: "Push-ups, dips, rows, support holds - dealer's choice. 3 sets." },
+        { station: "Bag - Speed Round", desc: "Light and fast. Nonstop volume punching. 1-2s, 1-1-2s. Don't stop. Cardio round." },
+        { station: "Pick an Isolation Lift", desc: "Curls, hammer curls, calf raises, RDLs - whatever's lagging. 3x12." },
+        { station: "Bag - War Round", desc: "3 min at 80%. Championship round. Best combos, best footwork, best form. Finish strong." },
+        { station: "Pull-ups + Push-ups", desc: "Alternate: pull-up set, push-up set. 3 rounds. No rest between the two." },
+        { station: "Core + Stretch", desc: "5 min core circuit (your choice), then 5 min stretching. Cool down. You earned it." },
+      ]
+    }
+  ];
+}
 
 // ============================================================
 // CONFIG
@@ -434,15 +761,136 @@ const TOTAL_ROUNDS = 9;
 // ============================================================
 // STATE
 // ============================================================
+let WORKOUTS = buildWorkouts(getCurrentWeek());
 let currentWorkout = null;
-let currentRound = 0;     // 0-indexed
-let phase = 'work';       // 'work' | 'rest'
+let currentRound = 0;
+let phase = 'work';
 let timeLeft = 0;
 let running = false;
 let paused = false;
 let interval = null;
 let workoutStartTime = 0;
 let wakeLock = null;
+
+// ============================================================
+// NAV TABS
+// ============================================================
+function switchTab(tab) {
+  $('tab-workouts').classList.toggle('active', tab === 'workouts');
+  $('tab-dashboard').classList.toggle('active', tab === 'dashboard');
+
+  if (tab === 'workouts') {
+    $('select-screen').style.display = 'flex';
+    $('dashboard-screen').style.display = 'none';
+  } else {
+    $('select-screen').style.display = 'none';
+    $('dashboard-screen').style.display = 'flex';
+    updateDashboard();
+  }
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function updateDashboard() {
+  const week = getCurrentWeek();
+  const t = getWeekTargets(week);
+  const progress = Math.round((week / RECOMP_WEEKS) * 100);
+
+  $('dash-week-num').textContent = week;
+  $('dash-week-label').textContent = 'Week ' + week + ' of ' + RECOMP_WEEKS;
+  $('progress-fill').style.width = progress + '%';
+
+  // Lift targets
+  $('t-bench').textContent = t.bench + ' lbs / ' + t.sets + 'x' + t.reps;
+  $('t-ohp').textContent = t.ohp + ' lbs / ' + t.sets + 'x' + t.reps;
+  $('t-pullups').textContent = t.pullupSets + ' x AMRAP';
+  $('t-rows').textContent = t.rows + ' lbs / ' + t.sets + 'x' + t.reps;
+  $('t-squat').textContent = t.squat + ' lbs / ' + t.sets + 'x' + t.reps;
+  $('t-rdl').textContent = t.rdl + ' lbs / ' + t.sets + 'x' + t.reps;
+  $('t-volume').textContent = t.volumeLabel;
+
+  // Check-in week
+  $('checkin-week-num').textContent = week;
+
+  // Load existing check-in for this week
+  const checkins = getCheckins();
+  const existing = checkins['week' + week];
+  if (existing) {
+    $('checkin-weight').value = existing.weight || '';
+    $('checkin-waist').value = existing.waist || '';
+  } else {
+    $('checkin-weight').value = '';
+    $('checkin-waist').value = '';
+  }
+
+  // Render history
+  renderHistory(checkins);
+}
+
+function getCheckins() {
+  try {
+    return JSON.parse(localStorage.getItem('recomp_checkins') || '{}');
+  } catch { return {}; }
+}
+
+function saveCheckin() {
+  const week = getCurrentWeek();
+  const weight = $('checkin-weight').value.trim();
+  const waist = $('checkin-waist').value.trim();
+
+  if (!weight && !waist) return;
+
+  const checkins = getCheckins();
+  checkins['week' + week] = {
+    weight: weight || null,
+    waist: waist || null,
+    date: new Date().toISOString().split('T')[0],
+  };
+  localStorage.setItem('recomp_checkins', JSON.stringify(checkins));
+
+  $('checkin-saved-msg').style.display = 'block';
+  setTimeout(() => { $('checkin-saved-msg').style.display = 'none'; }, 2000);
+
+  renderHistory(checkins);
+}
+
+function renderHistory(checkins) {
+  const container = $('history-rows');
+  let html = '';
+  let hasData = false;
+
+  for (let w = 1; w <= RECOMP_WEEKS; w++) {
+    const data = checkins['week' + w];
+    if (data) {
+      hasData = true;
+      html += '<div class="history-row">' +
+        '<span class="history-week">Week ' + w + '</span>' +
+        '<span class="history-weight">' + (data.weight ? data.weight + ' lbs' : '-') + '</span>' +
+        '<span class="history-waist">' + (data.waist ? data.waist + '"' : '-') + '</span>' +
+        '</div>';
+    }
+  }
+
+  if (!hasData) {
+    html = '<div class="history-empty">No check-ins yet. Weigh in and measure your waist weekly.</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+// ============================================================
+// UPDATE SELECT SCREEN
+// ============================================================
+function updateSelectScreen() {
+  const week = getCurrentWeek();
+  const t = getWeekTargets(week);
+
+  $('week-subtitle').textContent = 'Week ' + week + ' of 8 \u2014 Pick your workout';
+  $('push-weight-hint').textContent = 'Bench ' + t.bench + ' lbs / OHP ' + t.ohp + ' lbs \u2014 ' + t.sets + 'x' + t.reps;
+  $('pull-weight-hint').textContent = 'Rows ' + t.rows + ' lbs / Pull-ups ' + t.pullupSets + 'xAMRAP';
+  $('leg-weight-hint').textContent = 'Squats ' + t.squat + ' lbs / RDL ' + t.rdl + ' lbs \u2014 ' + t.sets + 'x' + t.reps;
+}
 
 // ============================================================
 // AUDIO (Web Audio API - zero dependencies)
@@ -474,7 +922,6 @@ function playBeep(freq, duration, count, gap) {
 
 function playBell() {
   const ctx = getAudio();
-  // Metallic bell - layered frequencies
   const freqs = [800, 1200, 1600, 2400];
   freqs.forEach((f, i) => {
     const osc = ctx.createOscillator();
@@ -490,7 +937,6 @@ function playBell() {
     osc.start(t);
     osc.stop(t + 1.3);
   });
-  // Impact noise
   const buf = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
   const data = buf.getChannelData(0);
   for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
@@ -519,7 +965,7 @@ async function requestWakeLock() {
   try {
     if ('wakeLock' in navigator) {
       wakeLock = await navigator.wakeLock.request('screen');
-      document.getElementById('wake-lock-status').textContent = '';
+      $('wake-lock-status').textContent = '';
     }
   } catch (e) { /* not critical */ }
 }
@@ -653,7 +1099,6 @@ function startTimer() {
 function togglePause() {
   paused = !paused;
   $('pause-btn').textContent = paused ? 'Resume' : 'Pause';
-  $('pause-btn').className = paused ? 'ctrl-btn primary' : 'ctrl-btn primary';
 }
 
 function skipPhase() {
@@ -677,9 +1122,10 @@ function skipPhase() {
 // WORKOUT FLOW
 // ============================================================
 function startWorkout(idx) {
-  // Init audio on user gesture
   getAudio();
 
+  // Rebuild workouts with current week's weights
+  WORKOUTS = buildWorkouts(getCurrentWeek());
   currentWorkout = WORKOUTS[idx];
   currentRound = 0;
   phase = 'work';
@@ -689,6 +1135,7 @@ function startWorkout(idx) {
 
   hide('select-screen');
   hide('done-screen');
+  $('nav-tabs').classList.add('hidden');
   show('timer-screen');
   buildRoundLights();
 
@@ -738,11 +1185,13 @@ function quitWorkout() {
   releaseWakeLock();
   hide('timer-screen');
   hide('countdown-overlay');
+  $('nav-tabs').classList.remove('hidden');
   show('select-screen');
 }
 
 function backToSelect() {
   hide('done-screen');
+  $('nav-tabs').classList.remove('hidden');
   show('select-screen');
 }
 
@@ -804,6 +1253,9 @@ async function generateWorkout() {
   $('gen-form').classList.add('hidden');
   $('gen-loading').classList.add('active');
 
+  const week = getCurrentWeek();
+  const t = getWeekTargets(week);
+
   const focusMap = {
     surprise: 'a random focus of your choice (push, pull, legs, full body, or something creative)',
     push: 'push muscles (chest, shoulders, triceps)',
@@ -818,6 +1270,11 @@ async function generateWorkout() {
 The user has this equipment: ${equipment.join(', ')}.
 ${equipment.includes('heavy bag') ? 'Heavy bag rounds should be mixed in between lifting rounds as active recovery/cardio.' : ''}
 
+This is Week ${week} of an 8-week recomp program. Current weight targets:
+- Upper body lifts (bench, OHP, rows): ${t.bench} lbs, ${t.sets}x${t.reps}
+- Lower body lifts (squat, RDL): ${t.squat} lbs, ${t.sets}x${t.reps}
+Include these specific weights and set/rep schemes in the workout descriptions.
+
 Generate a 9-round workout focused on: ${focusMap[selectedFocus]}.
 
 Rules:
@@ -825,7 +1282,7 @@ Rules:
 - Round 1 is always a warm-up.
 - Round 9 is always a core/cooldown finisher.
 - ${equipment.includes('heavy bag') ? 'Alternate lifting rounds and bag rounds (rounds 2-8). Bag rounds should include specific boxing combos using numbers (1=jab, 2=cross, 3=lead hook, 4=rear hook, 5=lead uppercut, 6=rear uppercut).' : 'Fill all 9 rounds with exercises using the available equipment.'}
-- Each round needs a short station name (2-5 words) and a detailed description with specific sets, reps, and coaching cues.
+- Each round needs a short station name (2-5 words) and a detailed description with specific sets, reps, weights, and coaching cues.
 - Be creative - don't repeat the same exercises every time. Mix it up.
 - Write in a motivating, direct, no-BS coaching voice.
 
@@ -862,7 +1319,6 @@ Respond with ONLY valid JSON, no markdown, no code fences. Use this exact format
     const content = data.choices?.[0]?.message?.content;
     if (!content) throw new Error('Empty response from API');
 
-    // Parse JSON - strip markdown fences if model adds them
     const cleaned = content.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     const workout = JSON.parse(cleaned);
 
@@ -870,7 +1326,6 @@ Respond with ONLY valid JSON, no markdown, no code fences. Use this exact format
       throw new Error('Invalid workout format (expected 9 rounds, got ' + (workout.rounds?.length || 0) + ')');
     }
 
-    // Launch it
     hide('generate-modal');
     currentWorkout = workout;
     currentRound = 0;
@@ -881,15 +1336,14 @@ Respond with ONLY valid JSON, no markdown, no code fences. Use this exact format
 
     hide('select-screen');
     hide('done-screen');
+    $('nav-tabs').classList.add('hidden');
     show('timer-screen');
     buildRoundLights();
     requestWakeLock();
     workoutStartTime = Date.now();
 
-    // Init audio on user gesture
     getAudio();
 
-    // 3-2-1 countdown
     show('countdown-overlay');
     let count = 3;
     $('countdown-num').textContent = count;
@@ -915,6 +1369,11 @@ Respond with ONLY valid JSON, no markdown, no code fences. Use this exact format
     $('gen-error').style.display = 'block';
   }
 }
+
+// ============================================================
+// INIT
+// ============================================================
+updateSelectScreen();
 </script>
 </body>
 </html>
