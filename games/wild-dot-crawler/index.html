@@ -8,29 +8,34 @@
     <meta name="theme-color" content="#0f172a">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
-    
+
     <!-- Tone.js for simple audio feedback -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 </head>
 <body class="bg-slate-900 text-gray-200 min-h-screen p-2 overflow-hidden select-none">
 
     <div id="game-container" class="max-w-md mx-auto flex flex-col h-[98vh]">
-        
+
         <!-- === FLOOR HEADER === -->
         <div class="flex justify-between items-center mb-2 px-2 shrink-0">
             <div id="floor-display" class="text-lg font-fantasy font-bold text-slate-300">Floor 1</div>
             <div class="flex gap-3 text-sm">
-                <span id="player-gold" class="text-amber-400 font-bold">💰 0</span>
-                <span id="player-potions" class="text-emerald-400 font-bold">🧪 1</span>
+                <span id="player-gold" class="text-amber-400 font-bold"></span>
+                <span id="player-potions" class="text-emerald-400 font-bold"></span>
             </div>
         </div>
-        
+
+        <!-- === ACTIVE PERKS DISPLAY === -->
+        <div id="perks-display" class="px-2 mb-1 flex flex-wrap gap-1 justify-center shrink-0 transition-opacity duration-500" style="display: none;">
+            <!-- Perk tags injected by JS -->
+        </div>
+
         <!-- === DUNGEON VIEW === -->
         <div class="p-3 bg-slate-800 rounded-2xl shadow-xl mb-2 border border-slate-700 shrink-0">
-            
+
             <!-- Enemy -->
             <div id="enemy-section" class="flex items-center gap-3 mb-3">
                 <div id="enemy-portrait-container" class="portrait-container">
@@ -50,7 +55,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Player -->
             <div id="player-section" class="flex items-center gap-3">
                 <div id="player-portrait-container" class="portrait-container player-portrait">
@@ -76,16 +81,16 @@
                     <div class="flex justify-between items-center gap-2 mt-1">
                         <span id="player-special-text" class="text-xs text-sky-400">Wild Surge: 0/10</span>
                         <div class="flex gap-1">
-                            <button id="shuffle-btn" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow transition-colors">🔄 5g</button>
-                            <button id="potion-btn" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow transition-colors">🧪 HEAL</button>
-                            <button id="surge-btn" class="hidden bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow animate-pulse">⚡ SURGE</button>
+                            <button id="shuffle-btn" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow transition-colors">&#x1F504; 5g</button>
+                            <button id="potion-btn" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow transition-colors">&#x1F9EA; HEAL</button>
+                            <button id="surge-btn" class="hidden bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow animate-pulse">&#x26A1; SURGE</button>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
         </div>
-        
+
         <!-- === GAME STATUS === -->
         <div class="text-center mb-2 h-8 flex justify-between items-center px-2 shrink-0">
             <h3 id="turn-status-text" class="text-lg font-bold text-amber-400">Your Turn: 3</h3>
@@ -101,7 +106,7 @@
             <!-- Floating damage text -->
             <div id="floating-text-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
         </div>
-        
+
         <!-- === RUNE LEGEND === -->
         <div class="mt-2 px-2 flex justify-center gap-3 text-[10px] text-slate-400 shrink-0 flex-wrap">
             <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-rose-500"></span>ATK</span>
@@ -123,45 +128,39 @@
                 <!-- Loot rewards appear here -->
             </div>
             <button id="modal-button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
-                Continue Deeper →
+                Continue Deeper &rarr;
             </button>
         </div>
     </div>
-    
+
     <!-- === GAME OVER MODAL === -->
     <div id="gameover-modal" class="modal-backdrop">
         <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-rose-900">
-            <h2 class="text-3xl font-fantasy font-bold mb-2 text-rose-500">☠️ Defeated</h2>
+            <h2 class="text-3xl font-fantasy font-bold mb-2 text-rose-500">&#x2620;&#xFE0F; Defeated</h2>
             <p id="gameover-text" class="text-md mb-4 text-gray-300">Your journey ends here...</p>
-            <div id="gameover-stats" class="text-left text-sm mb-4 bg-slate-900 rounded-lg p-3">
+            <div id="gameover-stats" class="text-left text-sm mb-4 bg-slate-900 rounded-lg p-3 max-h-60 overflow-y-auto">
                 <!-- Stats appear here -->
             </div>
             <button id="restart-button" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
-                🗡️ Try Again
+                &#x1F5E1;&#xFE0F; Try Again
             </button>
         </div>
     </div>
-    
+
     <!-- === UPGRADE MODAL (Level Up) === -->
     <div id="upgrade-modal" class="modal-backdrop">
         <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-5 max-w-sm w-full text-center border-2 border-amber-500">
-            <h2 class="text-2xl font-fantasy font-bold mb-1 text-amber-400">⬆️ Level Up!</h2>
+            <h2 class="text-2xl font-fantasy font-bold mb-1 text-amber-400">&#x2B06;&#xFE0F; Level Up!</h2>
             <p class="text-sm mb-3 text-gray-400">Choose your path:</p>
-            <div class="space-y-2">
-                <button data-upgrade="hp" class="upgrade-choice w-full bg-emerald-900/50 hover:bg-emerald-800 border border-emerald-500/50 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg flex flex-col items-center group">
-                    <strong class="font-fantasy text-emerald-400 group-hover:text-emerald-300">💚 Primal Vigor</strong>
-                    <span class="text-xs text-gray-300">+8 Max HP & Full Heal</span>
-                </button>
-                <button data-upgrade="attack" class="upgrade-choice w-full bg-rose-900/50 hover:bg-rose-800 border border-rose-500/50 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg flex flex-col items-center group">
-                    <strong class="font-fantasy text-rose-400 group-hover:text-rose-300">⚔️ Sharpened Claws</strong>
-                    <span class="text-xs text-gray-300">+1 Damage & +5% Crit</span>
-                </button>
-                <button data-upgrade="special" class="upgrade-choice w-full bg-sky-900/50 hover:bg-sky-800 border border-sky-500/50 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg flex flex-col items-center group">
-                    <strong class="font-fantasy text-sky-400 group-hover:text-sky-300">⚡ Wild Attunement</strong>
-                    <span class="text-xs text-gray-300">Charge Surge Much Faster</span>
-                </button>
+            <div id="upgrade-choices" class="space-y-2">
+                <!-- Dynamically generated upgrade buttons -->
             </div>
         </div>
+    </div>
+
+    <!-- === ACHIEVEMENT NOTIFICATION === -->
+    <div id="achievement-notification" class="achievement-notif" style="display: none;">
+        <!-- Achievement unlock notifications -->
     </div>
 
     <script src="game.js"></script>
