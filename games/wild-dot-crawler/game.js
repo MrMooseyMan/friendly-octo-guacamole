@@ -486,7 +486,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const last = state.selected[state.selected.length - 1];
         if (!last) return;
-        if (last.x === hit.x && last.y === hit.y) return;
+        if (last.x === hit.x && last.y === hit.y) {
+            if (state.isLoop) { state.isLoop = false; hideLoopPreview(); }
+            return;
+        }
 
         // Loop detection: dragging back to the first cell
         if (state.selected.length >= 3) {
