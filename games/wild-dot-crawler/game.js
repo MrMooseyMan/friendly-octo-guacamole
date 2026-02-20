@@ -355,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isBoss: template.isBoss || false, isElite: isElite, enraged: false,
             armorReduction: template.ability === 'armor' ? 0.3 : 0,
             reflectDamage: template.ability === 'reflect' ? 0.2 : 0,
-            stunned: false, weakened: false, weakenedTurns: 0,
+            stunned: false, shocked: 0, weakened: false, weakenedTurns: 0,
             burnDot: 0, burnDotTurns: 0, poisonDot: 0, poisonDotTurns: 0,
         };
         elEnemyPortrait.innerHTML = ICONS[template.icon] || ICONS['gloom-cap'];
@@ -867,8 +867,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="text-[10px] text-slate-600">Charges from <span style="color:${g.color}">${g.element}</span> essences</div>
                 </div>`;
             card.onclick = () => {
-                const startCharge = isShrine ? 30 : (meta.achievements.includes('centurion') ? 10 : 0);
-                state.guardian = { id: g.id, charge: startCharge };
+                if (isShrine && state.guardian && state.guardian.id === g.id) {
+                    state.guardian.charge = Math.min(state.guardian.charge + 30, g.maxCharge);
+                } else {
+                    const startCharge = isShrine ? 30 : (meta.achievements.includes('centurion') ? 10 : 0);
+                    state.guardian = { id: g.id, charge: startCharge };
+                }
                 modalGuardian.classList.remove('visible');
                 updateGuardianUI();
                 if (!isShrine) {
