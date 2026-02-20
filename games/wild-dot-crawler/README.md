@@ -1,98 +1,80 @@
-# Wild-Dot Crawler 🐉
+# Wild-Dot Crawler — Wilds Edition
 
-A rewarding dungeon crawler match-3 game! Connect runes to fight monsters, gain loot, and delve deeper into the dungeon.
+A puzzle RPG set in an explorable world of natural biomes. Connect essences, charge guardians, explore branching paths, and fight through diverse encounters. Inspired by the unreleased Dots Wilds.
 
-## 🎮 How to Play
+## How to Play
 
-**Goal:** Descend through dungeon floors, defeating enemies and bosses while growing stronger.
+**Goal:** Traverse the wilds, defeating creatures and bosses while growing stronger with your guardian companion.
 
 ### Controls
-- **Drag** across runes to connect 3+ of the same color
+- **Drag** across essence nodes to connect 3+ of the same color
 - **Diagonal connections** are allowed
-- **White runes** act as wildcards and can connect to any color
+- **White (Pure) essences** are wildcards that connect to any color
+- **Form a loop** by dragging back to your starting node to clear ALL essences of that color!
 
-### Rune Types
-| Rune | Color | Effect |
-|------|-------|--------|
-| ⚔️ Claw | Red | Deal damage to enemy |
-| 💚 Leaf | Green | Heal yourself |
-| ⚡ Mind | Blue | Charge Wild Surge |
-| 🛡️ Shield | Yellow | Gain shield (blocks damage) |
-| ☠️ Fang | Purple | Deal bonus damage |
-| ⭐ Sun Shard | White | Earn gold & XP (wildcard) |
+### Essence Types
+| Essence | Color | Effect |
+|---------|-------|--------|
+| Fire | Red | Deal damage to enemy |
+| Life | Green | Heal yourself |
+| Storm | Blue | Deal damage + chance to shock (increased damage taken) |
+| Earth | Yellow | Gain shield (blocks damage) |
+| Shadow | Purple | Deal damage + apply poison (damage over time) |
+| Pure | White | Earn gold & XP (wildcard connector) |
 
-### Combat System
-- You get **3 moves per turn**
+### Guardian System
+Choose one of 5 guardians to accompany you. Your guardian charges as you connect essences — matching your guardian's element charges it much faster!
+
+| Guardian | Element | Ability |
+|----------|---------|---------|
+| Verdant Spirit | Life (Green) | **Renewal** — Full heal + cleanse all debuffs |
+| Storm Hawk | Storm (Blue) | **Thunderbolt** — Massive damage + stun enemy |
+| Stone Sentinel | Earth (Yellow) | **Fortify** — Massive shield + thorns |
+| Ember Phoenix | Fire (Red) | **Inferno** — Fire burst + strong burn |
+| Shadow Panther | Shadow (Purple) | **Shadowstrike** — Poison + weaken enemy attacks |
+
+### Loop/Square Mechanic
+Form a closed loop by connecting essences back to your starting node (minimum 4 essences). This clears **ALL** essences of that color from the board — a devastating move that deals massive damage, heals enormously, or shields heavily depending on the color!
+
+### Branching Paths
+After each encounter, choose your path through the wilds:
+- **Battle** — Fight a creature blocking the path
+- **Elite Battle** — Face a tougher foe for richer rewards
+- **Rest Site** — Heal 30% HP and cleanse debuffs
+- **Guardian Shrine** — Switch your guardian or get bonus charge
+- **Treasure Cache** — Discover gold and items
+
+Boss encounters are forced every 5 floors — no choice, you must face them!
+
+### Biomes
+The world is divided into 4 distinct regions:
+- **Verdant Wilds** (Floors 1-12) — Lush forests and meadows
+- **Frost Peaks** (Floors 13-24) — Frozen mountains and ice caves
+- **Shadow Depths** (Floors 25-36) — Dark caverns and shadowy ruins
+- **Dragon's Cradle** (Floors 37-50) — Volcanic landscape of ancient power
+
+### Combat
+- You get **3 moves per turn** (upgradeable)
 - After your moves, the enemy attacks
 - Shield absorbs damage before HP
 - Defeat enemies to earn **gold, XP, and potions**
 
 ### Progression
-- **Floors**: Progress through increasingly difficult floors
 - **Level Up**: Gain XP to level up and choose powerful upgrades
-- **Boss Fights**: Every 5 floors, face a powerful boss with unique abilities
-- **Gold**: Earn gold from kills to track your riches
-- **Potions**: Earn potions from battles, use them to heal and cleanse status effects
+- **Upgrades**: 12 different upgrades including Guardian Mastery and Attunement
+- **Achievements**: Unlock permanent perks across runs
+- **Meta-progression**: Your achievements persist between runs
 
-### Special Abilities
-- **Wild Surge**: Charge by matching blue runes. When full, unleash massive damage + heal + shield!
-- **Potions**: Use potions during your turn to restore 40% HP and clear status effects
+### Tips
+1. **Match your guardian's element** for fast charging
+2. **Form loops** for devastating board clears
+3. **Build combos** — each match in a turn increases your multiplier
+4. **Balance offense and defense** — shields and heals keep you alive
+5. **Choose paths wisely** — rest before boss floors, treasure for resources
+6. **Pick the right guardian** — Verdant for survival, Ember/Storm for aggression
 
-### Critical Hits
-- Longer chains (5+ runes) have increased critical hit chance
-- Crits deal 75% bonus damage with special effects!
-
-### Enemy Abilities
-Enemies have unique abilities that require different strategies:
-- **Bleed**: Causes damage over time
-- **Burn**: Deals fire damage each turn
-- **Pierce**: Ignores your shield
-- **Drain**: Steals your surge charge
-- **Armor**: Takes reduced damage
-- **Reflect**: Returns some damage to you
-- **Regen**: Heals each turn
-- **Curse**: Reduces your healing effectiveness
-
-### Bosses
-Every 5 floors you'll encounter a powerful boss:
-- 🌳 **Ancient Treant** (Floor 5)
-- 🐉 **Elder Hydra** (Floor 10)
-- 👤 **Shadow Lord** (Floor 15)
-- 🔥 **Dragon King** (Floor 20+)
-
-## 🏆 Tips for Success
-
-1. **Build combos**: Each match in a turn increases your combo multiplier
-2. **Balance offense and defense**: Don't neglect shields and healing
-3. **Prepare for bosses**: Stock up potions and charge your surge before floor 5, 10, 15...
-4. **Long chains**: 6+ rune chains have much higher crit chance
-5. **Choose upgrades wisely**: HP helps early, damage scales better late
-
-## 📊 Run Statistics
-
-When your run ends, you'll see:
-- Floor reached
-- Enemies & bosses defeated
-- Total damage dealt
-- Gold earned
-- Critical hits landed
-- Longest chain achieved
-
-## 🛠️ Tech Stack
-
+## Tech Stack
 - Vanilla JavaScript
 - Tailwind CSS
 - Tone.js for audio
 - SVG graphics
-
-## 🎵 Audio
-
-Click anywhere to enable audio. The game features:
-- Rising scale notes for chain building
-- Impact sounds for attacks
-- Satisfying gold collection sounds
-- Boss encounter fanfare
-
----
-
-*Delve deep, fight hard, and may your chains be long!* ⚔️

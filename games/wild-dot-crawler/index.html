@@ -3,44 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wild-Dot Crawler</title>
-    <meta name="description" content="Roguelike puzzle RPG - Match runes to attack, heal, and cast spells. Fight through floors, level up, and unleash Wild Surges in this addictive match-3 dungeon crawler!">
-    <meta name="theme-color" content="#0f172a">
-    <!-- Tailwind CSS -->
+    <title>Wild-Dot Crawler — Wilds</title>
+    <meta name="description" content="Puzzle RPG in the wilds. Connect essences, charge guardians, explore branching paths through naturalistic biomes. Inspired by Dots Wilds.">
+    <meta name="theme-color" content="#0a1f0f">
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
-
-    <!-- Tone.js for simple audio feedback -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 </head>
-<body class="bg-slate-900 text-gray-200 min-h-screen p-2 overflow-hidden select-none">
+<body class="min-h-screen p-2 overflow-hidden select-none">
 
     <div id="game-container" class="max-w-md mx-auto flex flex-col h-[98vh]">
 
-        <!-- === FLOOR HEADER === -->
-        <div class="flex justify-between items-center mb-2 px-2 shrink-0">
-            <div id="floor-display" class="text-lg font-fantasy font-bold text-slate-300">Floor 1</div>
+        <!-- BIOME HEADER -->
+        <div class="flex justify-between items-center mb-1 px-2 shrink-0">
+            <div>
+                <div id="biome-display" class="text-[10px] font-bold uppercase tracking-widest text-emerald-400/80">Verdant Wilds</div>
+                <div id="floor-display" class="text-sm font-fantasy text-slate-300">Encounter 1</div>
+            </div>
             <div class="flex gap-3 text-sm">
                 <span id="player-gold" class="text-amber-400 font-bold"></span>
                 <span id="player-potions" class="text-emerald-400 font-bold"></span>
             </div>
         </div>
 
-        <!-- === ACTIVE PERKS DISPLAY === -->
-        <div id="perks-display" class="px-2 mb-1 flex flex-wrap gap-1 justify-center shrink-0 transition-opacity duration-500" style="display: none;">
-            <!-- Perk tags injected by JS -->
+        <!-- ACTIVE PERKS -->
+        <div id="perks-display" class="px-2 mb-1 flex flex-wrap gap-1 justify-center shrink-0 transition-opacity duration-500" style="display: none;"></div>
+
+        <!-- GUARDIAN BAR -->
+        <div id="guardian-bar" class="px-2 mb-2 shrink-0">
+            <div class="guardian-bar-container flex items-center gap-2">
+                <div id="guardian-icon" class="text-xl w-7 text-center shrink-0">🌿</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center">
+                        <span id="guardian-name" class="text-[11px] font-bold text-emerald-400 truncate">Verdant Spirit</span>
+                        <span id="guardian-charge-text" class="text-[10px] text-slate-500">0/100</span>
+                    </div>
+                    <div class="hp-bar-bg h-2 w-full mt-0.5">
+                        <div id="guardian-charge-bar" class="hp-bar guardian-bar-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <button id="guardian-btn" class="hidden guardian-activate-btn shrink-0">✨ USE</button>
+            </div>
         </div>
 
-        <!-- === DUNGEON VIEW === -->
-        <div class="p-3 bg-slate-800 rounded-2xl shadow-xl mb-2 border border-slate-700 shrink-0">
-
+        <!-- ENCOUNTER VIEW -->
+        <div class="p-3 bg-slate-800/90 rounded-2xl shadow-xl mb-2 border border-slate-700/60 shrink-0 backdrop-blur-sm">
             <!-- Enemy -->
             <div id="enemy-section" class="flex items-center gap-3 mb-3">
-                <div id="enemy-portrait-container" class="portrait-container">
-                    <!-- Enemy SVG goes here -->
-                </div>
+                <div id="enemy-portrait-container" class="portrait-container"></div>
                 <div id="enemy-stats" class="flex-1 transition-all duration-300">
                     <div class="flex justify-between items-end">
                         <h2 id="enemy-name" class="text-xl font-fantasy font-bold text-rose-400">Gloom-cap</h2>
@@ -55,18 +65,14 @@
                     </div>
                 </div>
             </div>
-
             <!-- Player -->
             <div id="player-section" class="flex items-center gap-3">
-                <div id="player-portrait-container" class="portrait-container player-portrait">
-                    <!-- Player SVG goes here -->
-                </div>
+                <div id="player-portrait-container" class="portrait-container player-portrait"></div>
                 <div id="player-stats" class="flex-1">
                     <div class="flex justify-between items-end">
                         <h2 class="text-lg font-fantasy font-bold text-emerald-400">Warden</h2>
                         <p id="player-level" class="text-xs text-gray-400">Lvl 1</p>
                     </div>
-                    <!-- HP -->
                     <div class="hp-bar-bg h-5 w-full mt-1 relative">
                         <div id="player-hp-bar" class="hp-bar hp-bar-player" style="width: 100%;"></div>
                         <span id="player-hp-text-overlay" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow-md">25 / 25</span>
@@ -74,94 +80,107 @@
                     <div class="flex justify-between text-xs px-1 mt-0.5">
                         <span id="player-shield-text" class="text-amber-400 font-bold"></span>
                     </div>
-                    <!-- Special -->
-                    <div class="hp-bar-bg h-3 w-full mt-1">
-                        <div id="player-special-bar" class="hp-bar hp-bar-special" style="width: 0%;"></div>
-                    </div>
                     <div class="flex justify-between items-center gap-2 mt-1">
-                        <span id="player-special-text" class="text-xs text-sky-400">Wild Surge: 0/10</span>
+                        <span id="player-xp-text" class="text-xs text-violet-400">XP: 0/15</span>
                         <div class="flex gap-1">
                             <button id="shuffle-btn" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow transition-colors">&#x1F504; 5g</button>
                             <button id="potion-btn" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow transition-colors">&#x1F9EA; HEAL</button>
-                            <button id="surge-btn" class="hidden bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow animate-pulse">&#x26A1; SURGE</button>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
 
-        <!-- === GAME STATUS === -->
+        <!-- GAME STATUS -->
         <div class="text-center mb-2 h-8 flex justify-between items-center px-2 shrink-0">
             <h3 id="turn-status-text" class="text-lg font-bold text-amber-400">Your Turn: 3</h3>
             <h3 id="combo-text" class="text-lg font-bold text-gray-300 opacity-0 transition-opacity">Combo: <span id="combo-value" class="text-amber-300">x1.0</span></h3>
         </div>
 
-        <!-- === GAME BOARD === -->
-        <div id="game-board-container" class="flex-grow bg-slate-800 rounded-2xl shadow-xl p-3 border border-slate-700 relative overflow-hidden">
+        <!-- GAME BOARD -->
+        <div id="game-board-container" class="flex-grow bg-slate-800/80 rounded-2xl shadow-xl p-3 border border-slate-700/50 relative overflow-hidden backdrop-blur-sm">
             <svg id="connector-svg"></svg>
-            <div id="game-board" class="game-board h-full w-full" style="--grid-size: 6;">
-                <!-- Runes will be generated here by JS -->
-            </div>
-            <!-- Floating damage text -->
+            <div id="game-board" class="game-board h-full w-full" style="--grid-size: 6;"></div>
             <div id="floating-text-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+            <div id="loop-indicator" class="loop-indicator" style="display:none;">&#x2B55; LOOP!</div>
         </div>
 
-        <!-- === RUNE LEGEND === -->
+        <!-- ESSENCE LEGEND -->
         <div class="mt-2 px-2 flex justify-center gap-3 text-[10px] text-slate-400 shrink-0 flex-wrap">
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-rose-500"></span>ATK</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-500"></span>HEAL</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-sky-500"></span>SURGE</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-500"></span>SHIELD</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-violet-400"></span>POISON</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-slate-100"></span>GOLD</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-rose-500"></span>FIRE</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-500"></span>LIFE</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-sky-500"></span>STORM</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-500"></span>EARTH</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-violet-400"></span>SHADOW</span>
+            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-slate-100"></span>PURE</span>
         </div>
-
     </div>
 
-    <!-- === VICTORY MODAL === -->
+    <!-- VICTORY MODAL -->
     <div id="modal" class="modal-backdrop">
         <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-emerald-700">
             <h2 id="modal-title" class="text-3xl font-fantasy font-bold mb-2 text-emerald-400">Victory!</h2>
-            <p id="modal-text" class="text-lg mb-3 text-slate-300">You defeated the Gloom-cap.</p>
-            <div id="modal-loot" class="mb-4">
-                <!-- Loot rewards appear here -->
-            </div>
+            <p id="modal-text" class="text-lg mb-3 text-slate-300"></p>
+            <div id="modal-loot" class="mb-4"></div>
             <button id="modal-button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
-                Continue Deeper &rarr;
+                Explore Deeper &rarr;
             </button>
         </div>
     </div>
 
-    <!-- === GAME OVER MODAL === -->
+    <!-- GAME OVER MODAL -->
     <div id="gameover-modal" class="modal-backdrop">
         <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-rose-900">
-            <h2 class="text-3xl font-fantasy font-bold mb-2 text-rose-500">&#x2620;&#xFE0F; Defeated</h2>
-            <p id="gameover-text" class="text-md mb-4 text-gray-300">Your journey ends here...</p>
-            <div id="gameover-stats" class="text-left text-sm mb-4 bg-slate-900 rounded-lg p-3 max-h-60 overflow-y-auto">
-                <!-- Stats appear here -->
-            </div>
+            <h2 class="text-3xl font-fantasy font-bold mb-2 text-rose-500">&#x2620;&#xFE0F; Fallen</h2>
+            <p id="gameover-text" class="text-md mb-4 text-gray-300">The wilds have claimed you...</p>
+            <div id="gameover-stats" class="text-left text-sm mb-4 bg-slate-900 rounded-lg p-3 max-h-60 overflow-y-auto"></div>
             <button id="restart-button" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
                 &#x1F5E1;&#xFE0F; Try Again
             </button>
         </div>
     </div>
 
-    <!-- === UPGRADE MODAL (Level Up) === -->
+    <!-- UPGRADE MODAL -->
     <div id="upgrade-modal" class="modal-backdrop">
         <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-5 max-w-sm w-full text-center border-2 border-amber-500">
             <h2 class="text-2xl font-fantasy font-bold mb-1 text-amber-400">&#x2B06;&#xFE0F; Level Up!</h2>
             <p class="text-sm mb-3 text-gray-400">Choose your path:</p>
-            <div id="upgrade-choices" class="space-y-2">
-                <!-- Dynamically generated upgrade buttons -->
-            </div>
+            <div id="upgrade-choices" class="space-y-2"></div>
         </div>
     </div>
 
-    <!-- === ACHIEVEMENT NOTIFICATION === -->
-    <div id="achievement-notification" class="achievement-notif" style="display: none;">
-        <!-- Achievement unlock notifications -->
+    <!-- PATH SELECTION MODAL -->
+    <div id="path-modal" class="modal-backdrop">
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-5 max-w-sm w-full text-center border-2 border-slate-600">
+            <h2 class="text-xl font-fantasy font-bold mb-1 text-slate-200">&#x1F5FA;&#xFE0F; Choose Your Path</h2>
+            <p id="path-biome-text" class="text-xs text-emerald-400 mb-3 uppercase tracking-wider">Verdant Wilds</p>
+            <div id="path-choices" class="space-y-2"></div>
+        </div>
     </div>
+
+    <!-- GUARDIAN SELECTION MODAL -->
+    <div id="guardian-modal" class="modal-backdrop">
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-5 max-w-sm w-full text-center border-2 border-violet-600/80">
+            <h2 id="guardian-modal-title" class="text-xl font-fantasy font-bold mb-1 text-violet-400">&#x1F3DB;&#xFE0F; Choose Your Guardian</h2>
+            <p class="text-xs text-gray-400 mb-3">Your guardian charges as you connect essences</p>
+            <div id="guardian-choices" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <!-- EVENT MODAL (rest, treasure, etc.) -->
+    <div id="event-modal" class="modal-backdrop">
+        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-emerald-700">
+            <h2 id="event-title" class="text-2xl font-fantasy font-bold mb-2 text-emerald-400"></h2>
+            <p id="event-text" class="text-md mb-4 text-slate-300"></p>
+            <div id="event-details" class="mb-4"></div>
+            <button id="event-button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
+                Continue &rarr;
+            </button>
+        </div>
+    </div>
+
+    <!-- ACHIEVEMENT NOTIFICATION -->
+    <div id="achievement-notification" class="achievement-notif" style="display: none;"></div>
 
     <script src="game.js"></script>
 </body>

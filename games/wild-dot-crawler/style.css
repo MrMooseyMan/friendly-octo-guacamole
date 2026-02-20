@@ -5,13 +5,15 @@
 body {
     font-family: 'Inter', sans-serif;
     touch-action: none;
-    background: linear-gradient(160deg, #0c0f1a 0%, #151934 40%, #1a0f2e 70%, #0c0f1a 100%);
+    background: linear-gradient(160deg, #0a1f0f 0%, #0f2e1a 40%, #0c2618 70%, #0a1a0f 100%);
     background-attachment: fixed;
+    color: #e2e8f0;
+    transition: background 1s ease;
 }
 
 .font-fantasy { font-family: 'Lora', serif; }
 
-/* --- Game Board --- */
+/* ── Game Board ── */
 .game-board {
     display: grid;
     grid-template-columns: repeat(var(--grid-size, 6), 1fr);
@@ -21,7 +23,7 @@ body {
     touch-action: none;
 }
 
-/* --- Rune Tiles --- */
+/* ── Rune/Essence Tiles ── */
 .rune {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -48,11 +50,10 @@ body {
     pointer-events: none;
 }
 
-/* --- Rune Type Colors --- */
+/* ── Essence Colors ── */
 .rune-red {
     background: linear-gradient(145deg, #3b1525 0%, #2a0f1a 100%);
     box-shadow: inset 0 1px 0 rgba(244,63,94,0.15), 0 2px 4px rgba(0,0,0,0.3);
-    --glow-color: #f43f5e;
 }
 .rune-red svg { fill: #f43f5e; }
 .rune-red.selected { box-shadow: 0 0 16px 6px rgba(244,63,94,0.5), inset 0 0 8px rgba(244,63,94,0.2); }
@@ -60,7 +61,6 @@ body {
 .rune-green {
     background: linear-gradient(145deg, #0f2e20 0%, #0a1f16 100%);
     box-shadow: inset 0 1px 0 rgba(16,185,129,0.15), 0 2px 4px rgba(0,0,0,0.3);
-    --glow-color: #10b981;
 }
 .rune-green svg { fill: #10b981; }
 .rune-green.selected { box-shadow: 0 0 16px 6px rgba(16,185,129,0.5), inset 0 0 8px rgba(16,185,129,0.2); }
@@ -68,7 +68,6 @@ body {
 .rune-blue {
     background: linear-gradient(145deg, #0c2640 0%, #081a2e 100%);
     box-shadow: inset 0 1px 0 rgba(14,165,233,0.15), 0 2px 4px rgba(0,0,0,0.3);
-    --glow-color: #0ea5e9;
 }
 .rune-blue svg { fill: #0ea5e9; }
 .rune-blue.selected { box-shadow: 0 0 16px 6px rgba(14,165,233,0.5), inset 0 0 8px rgba(14,165,233,0.2); }
@@ -76,7 +75,6 @@ body {
 .rune-yellow {
     background: linear-gradient(145deg, #2e2008 0%, #201606 100%);
     box-shadow: inset 0 1px 0 rgba(245,158,11,0.15), 0 2px 4px rgba(0,0,0,0.3);
-    --glow-color: #f59e0b;
 }
 .rune-yellow svg { fill: #f59e0b; }
 .rune-yellow.selected { box-shadow: 0 0 16px 6px rgba(245,158,11,0.5), inset 0 0 8px rgba(245,158,11,0.2); }
@@ -84,7 +82,6 @@ body {
 .rune-purple {
     background: linear-gradient(145deg, #251540 0%, #1a0e30 100%);
     box-shadow: inset 0 1px 0 rgba(167,139,250,0.15), 0 2px 4px rgba(0,0,0,0.3);
-    --glow-color: #a78bfa;
 }
 .rune-purple svg { fill: #a78bfa; }
 .rune-purple.selected { box-shadow: 0 0 16px 6px rgba(167,139,250,0.5), inset 0 0 8px rgba(167,139,250,0.2); }
@@ -92,18 +89,16 @@ body {
 .rune-white {
     background: linear-gradient(145deg, #2a2a32 0%, #1e1e26 100%);
     box-shadow: inset 0 1px 0 rgba(241,245,249,0.15), 0 2px 4px rgba(0,0,0,0.3);
-    --glow-color: #fef3c7;
 }
 .rune-white svg { fill: #f1f5f9; }
 .rune-white.selected { box-shadow: 0 0 16px 6px rgba(254,243,199,0.5), inset 0 0 8px rgba(254,243,199,0.2); }
 
-/* --- Frozen --- */
+/* ── Frozen ── */
 .rune.frozen {
     pointer-events: none;
     filter: brightness(0.6) saturate(0.4);
     border-color: rgba(56,189,248,0.4);
 }
-
 .rune.frozen::after {
     content: attr(data-frozen-turns);
     position: absolute;
@@ -120,14 +115,42 @@ body {
     z-index: 5;
 }
 
-/* --- Cascade --- */
+/* ── Cascade ── */
 .rune.cascade-glow {
     animation: cascade-pulse 0.25s ease-in-out;
     box-shadow: 0 0 18px 8px rgba(251,191,36,0.5) !important;
     border-color: rgba(251,191,36,0.6);
 }
 
-/* --- Animations --- */
+/* ── Loop Target ── */
+.rune.loop-target {
+    animation: loop-target-glow 0.4s ease-in-out infinite alternate;
+}
+@keyframes loop-target-glow {
+    0% { box-shadow: 0 0 8px 3px rgba(251,191,36,0.3); }
+    100% { box-shadow: 0 0 18px 8px rgba(251,191,36,0.6); border-color: rgba(251,191,36,0.5); }
+}
+
+/* ── Loop Indicator ── */
+.loop-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #fbbf24;
+    text-shadow: 0 0 20px rgba(251,191,36,0.8), 0 2px 4px rgba(0,0,0,0.8);
+    z-index: 25;
+    animation: loop-pulse 0.5s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes loop-pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.15); }
+}
+
+/* ── Animations ── */
 @keyframes fall {
     from { transform: translateY(-60px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -177,6 +200,10 @@ body {
     60% { transform: translateY(-3px) scale(1.02); opacity: 1; }
     100% { transform: translateY(0) scale(1); opacity: 1; }
 }
+@keyframes guardian-ready-pulse {
+    0%, 100% { box-shadow: 0 0 4px var(--guardian-color, #10b981); }
+    50% { box-shadow: 0 0 14px var(--guardian-color, #10b981); }
+}
 
 .animate-fall { animation: fall 0.2s ease-out; }
 .animate-shake { animation: shake 0.35s ease-in-out; }
@@ -184,26 +211,61 @@ body {
 .shake-small { animation: shake-small 0.2s ease-in-out; }
 .animate-pulse-bright { animation: pulse-bright 0.5s ease-in-out 2; }
 
-/* --- UI Elements --- */
+/* ── UI Elements ── */
 .hp-bar-bg {
     background: rgba(15,23,42,0.8);
     border-radius: 9999px;
     overflow: hidden;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
 }
-
 .hp-bar {
     height: 100%;
     transition: width 0.35s ease-in-out;
     border-radius: 9999px;
     position: relative;
 }
-
 .hp-bar-player { background: linear-gradient(90deg, #059669, #34d399); }
 .hp-bar-enemy { background: linear-gradient(90deg, #dc2626, #fb7185); }
-.hp-bar-special { background: linear-gradient(90deg, #0284c7, #38bdf8); }
 
-/* --- Portrait --- */
+/* ── Guardian Bar ── */
+.guardian-bar-container {
+    background: rgba(15,23,42,0.7);
+    border: 1px solid rgba(51,65,85,0.4);
+    border-radius: 12px;
+    padding: 6px 10px;
+    backdrop-filter: blur(4px);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.guardian-bar-container.charged {
+    border-color: var(--guardian-color, rgba(16,185,129,0.6));
+    animation: guardian-ready-pulse 1.5s ease-in-out infinite;
+}
+.guardian-bar-fill {
+    background: linear-gradient(90deg, #059669, #10b981);
+    transition: width 0.3s ease;
+}
+.guardian-bar-fill.storm { background: linear-gradient(90deg, #0284c7, #38bdf8); }
+.guardian-bar-fill.ember { background: linear-gradient(90deg, #be123c, #f43f5e); }
+.guardian-bar-fill.stone { background: linear-gradient(90deg, #b45309, #f59e0b); }
+.guardian-bar-fill.shadow { background: linear-gradient(90deg, #6d28d9, #a78bfa); }
+.guardian-bar-fill.verdant { background: linear-gradient(90deg, #059669, #10b981); }
+
+.guardian-activate-btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: none;
+    animation: pulse-bright 1.5s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(99,102,241,0.4);
+}
+.guardian-activate-btn:hover {
+    background: linear-gradient(135deg, #818cf8, #a78bfa);
+}
+
+/* ── Portrait ── */
 .portrait-container {
     width: 64px;
     height: 64px;
@@ -215,19 +277,18 @@ body {
     flex-shrink: 0;
     transition: all 0.3s ease;
 }
-
 .portrait-container svg { width: 100%; height: 100%; }
 .player-portrait { border-color: rgba(16,185,129,0.5); }
 .boss-portrait { border-color: rgba(245,158,11,0.6); animation: boss-glow 2s ease-in-out infinite; }
 
-/* --- Cards (glassmorphism) --- */
+/* ── Board Container ── */
 #game-board-container {
-    background: linear-gradient(180deg, rgba(15,23,42,0.9), rgba(10,15,30,0.95));
+    background: linear-gradient(180deg, rgba(15,23,42,0.85), rgba(10,15,30,0.9));
     border-color: rgba(51,65,85,0.4) !important;
     backdrop-filter: blur(8px);
 }
 
-/* --- Modal --- */
+/* ── Modal ── */
 .modal-backdrop {
     position: fixed;
     inset: 0;
@@ -249,7 +310,7 @@ body {
 }
 .modal-backdrop.visible .modal-content { transform: scale(1) translateY(0); }
 
-/* --- Connector --- */
+/* ── Connector ── */
 #connector-svg {
     position: absolute;
     top: 0; left: 0;
@@ -265,8 +326,13 @@ body {
     stroke-linejoin: round;
     filter: drop-shadow(0 0 5px rgba(255,255,255,0.4));
 }
+.connector-line.loop {
+    stroke: rgba(251,191,36,0.8);
+    stroke-width: 5;
+    filter: drop-shadow(0 0 8px rgba(251,191,36,0.6));
+}
 
-/* --- Floating Text --- */
+/* ── Floating Text ── */
 .floating-text {
     position: absolute;
     font-weight: 700;
@@ -283,7 +349,7 @@ body {
     text-shadow: 0 0 8px currentColor, 0 2px 6px rgba(0,0,0,0.9);
 }
 
-/* --- Loot --- */
+/* ── Loot ── */
 .loot-display {
     display: flex;
     flex-direction: column;
@@ -296,13 +362,13 @@ body {
 .xp-reward { color: #a78bfa; font-weight: bold; }
 .potion-reward { color: #10b981; font-weight: bold; }
 
-/* --- Stats --- */
+/* ── Stats ── */
 .stats-grid { display: grid; gap: 0.4rem; }
 .stats-grid > div { display: flex; justify-content: space-between; padding: 0.2rem 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
 .stats-grid > div:last-child { border-bottom: none; }
 .stats-grid strong { color: #fbbf24; }
 
-/* --- Meta / Achievements --- */
+/* ── Meta / Achievements ── */
 .legacy-section { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 0.5rem; }
 .achievement-section { border-top: 1px solid rgba(16,185,129,0.25); padding-top: 0.5rem; }
 .achievement-item {
@@ -314,7 +380,7 @@ body {
     animation: achievement-pop 0.4s ease-out;
 }
 
-/* --- Perk Tags --- */
+/* ── Perk Tags ── */
 .perk-tag {
     display: inline-block;
     background: rgba(16,185,129,0.1);
@@ -327,16 +393,58 @@ body {
     animation: perk-slide-in 0.3s ease-out;
 }
 
-/* --- Buttons --- */
+/* ── Buttons ── */
 button { cursor: pointer; transition: all 0.15s ease; }
 button:active { transform: scale(0.95); }
-
 .upgrade-choice:hover { transform: translateY(-2px); }
 .upgrade-choice:active { transform: translateY(0); }
-
 #floor-display { text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 
-/* --- Responsive --- */
+/* ── Path Cards ── */
+.path-card {
+    background: rgba(15,23,42,0.8);
+    border: 1px solid rgba(51,65,85,0.5);
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+}
+.path-card:hover {
+    background: rgba(30,41,59,0.9);
+    border-color: rgba(100,116,139,0.6);
+    transform: translateX(4px);
+}
+.path-card:active { transform: translateX(2px) scale(0.98); }
+.path-card-icon { font-size: 1.5rem; width: 36px; text-align: center; flex-shrink: 0; }
+
+/* ── Guardian Cards ── */
+.guardian-card {
+    background: rgba(15,23,42,0.8);
+    border: 1px solid rgba(51,65,85,0.5);
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+}
+.guardian-card:hover {
+    border-color: rgba(139,92,246,0.5);
+    transform: translateY(-2px);
+    background: rgba(30,25,60,0.6);
+}
+.guardian-card.equipped {
+    border-color: rgba(16,185,129,0.5);
+    background: rgba(16,185,129,0.08);
+}
+
+/* ── Responsive ── */
 @media (max-height: 700px) {
     .portrait-container { width: 56px; height: 56px; }
     .rune { padding: 11%; }
