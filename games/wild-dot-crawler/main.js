@@ -15,6 +15,7 @@ import {
     RUNES,
     SCOUT_COST,
     SURGE_MAX,
+    WILDFALL_TRIGGER_SIZE,
 } from './content.js';
 import { AudioController } from './audio.js';
 import { loadMeta, loadSettings, saveMeta, saveSettings } from './storage.js';
@@ -26,6 +27,9 @@ const ADJACENT_OFFSETS = [
 ];
 
 const sleep = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+const ENEMY_HP_MULTIPLIERS = { battle: 1.22, elite: 1.16, boss: 1.12 };
+const CHAIN_SOFT_CAP = 6;
+const CHAIN_OVERFLOW_WEIGHT = 0.35;
 
 function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
@@ -50,7 +54,8 @@ function shuffle(items) {
     return copy;
 }
 
-function cloneEnemy(template) {
+function cloneEnemy(template, hpMultiplier = 1) {
+    const scaledHp = Math.round(template.hp * hpMultiplier);
     return {
         ...template,
         guard: 0,
@@ -58,8 +63,8 @@ function cloneEnemy(template) {
         weak: 0,
         strength: 0,
         currentIntentIndex: 0,
-        maxHp: template.hp,
-        hp: template.hp,
+        maxHp: scaledHp,
+        hp: scaledHp,
     };
 }
 
@@ -91,7 +96,7 @@ function createPlayer() {
         shopDiscount: 0,
         cacheBonusGold: 0,
         surgeBonusDamage: 0,
-        wildfallPower: 0.62,
+        wildfallPower: 0.48,
         boons: [],
         boonIds: new Set(),
         battleFirstChainUsed: false,
@@ -237,12 +242,23 @@ class WildDotCrawler {
     }
 
     renderLegend() {
-        this.dom.legendGrid.innerHTML = LEGEND_COPY.map((entry) => `
-            <article class="legend-card">
-                <strong>${entry.title}</strong>
-                <span>${entry.text}</span>
-            </article>
-        `).join('');
+        this.dom.legendGrid.innerHTML = RUNES.map((rune) => {
+            const extraCopy = LEGEND_COPY.find((entry) => entry.title.toLowerCase() === rune.name.toLowerCase());
+            return `
+                <article class="legend-card">
+                    <div class="legend-card-head">
+                        <div class="legend-icon" style="--legend-color: ${rune.color}">
+                            ${rune.icon}
+                        </div>
+                        <div class="legend-copy">
+                            <strong>${rune.name}</strong>
+                            <small>${rune.label}</small>
+                        </div>
+                    </div>
+                    <span>${extraCopy?.text ?? rune.label}</span>
+                </article>
+            `;
+        }).join('');
     }
 
     renderAll() {
@@ -303,20 +319,23 @@ class WildDotCrawler {
         }).join('');
 
         if (this.state.stageIndex === -1) {
-            this.dom.nextNodeBanner.textContent = 'Tap Begin Hunt to enter the first skirmish.';
+            this.dom.nextNodeBanner.textContent = 'Tap Begin Hunt to enter the first skirmish. A battle is one full node, not just one move.';
             return;
         }
 
         const stage = path[this.state.stageIndex];
         if (stage?.choices && !this.state.journeyHistory[this.state.actIndex][this.state.stageIndex]) {
-            this.dom.nextNodeBanner.textContent = 'A fork in the wilds opens. Choose your route.';
+            this.dom.nextNodeBanner.textContent = 'A fork in the wilds opens. Clear the current node, then choose where the run goes next.';
             return;
         }
 
         const currentType = this.state.journeyHistory[this.state.actIndex][this.state.stageIndex]
             ?? path[this.state.stageIndex]?.type
             ?? 'battle';
-        this.dom.nextNodeBanner.textContent = NODE_TYPES[currentType].description;
+        const reminder = ['battle', 'elite', 'boss'].includes(currentType)
+            ? ' These fights usually take a few turns, so track the next intent.'
+            : '';
+        this.dom.nextNodeBanner.textContent = `${NODE_TYPES[currentType].description}${reminder}`;
     }
 
     renderPlayer() {
@@ -415,8 +434,8 @@ class WildDotCrawler {
 
     renderObjectives() {
         if (this.state.enemy) {
-            this.dom.objectiveTitle.textContent = `Defeat ${this.state.enemy.name}`;
-            this.dom.objectiveCopy.textContent = this.describeIntent(this.getEnemyIntent());
+            this.dom.objectiveTitle.textContent = `Turn ${this.state.turn} - ${this.state.enemy.name}`;
+            this.dom.objectiveCopy.textContent = `Make one chain, then brace for ${this.describeIntent(this.getEnemyIntent())}. Winning this battle clears the current route node.`;
             return;
         }
 
@@ -471,7 +490,7 @@ class WildDotCrawler {
     showHelpOverlay() {
         this.showOverlay({
             eyebrow: 'How it works',
-            title: 'One board, one route, one chain at a time',
+            title: 'Turns, battles, and route nodes',
             copy: `${HELP_LINES.map((line) => `• ${line}`).join('<br>')}<br><br>Use <strong>Map</strong> for the overworld route and <strong>Pack</strong> for boons, stats, and your current build.`,
             actions: [{ label: 'Back to the run', action: 'close-overlay', primary: true }],
         });
@@ -561,9 +580,9 @@ class WildDotCrawler {
 
         this.showOverlay({
             eyebrow: 'Wild-Dot Crawler',
-            title: 'A cleaner, sharper crawl through the wilds',
+            title: 'A slower, clearer crawl through the wilds',
             copy: `
-                The main screen now stays focused on the boss and the dot board. Route planning lives in <strong>Map</strong>, and your build lives in <strong>Pack</strong>.
+                Each route node is a full battle or event, not a single move. The main screen now keeps the <strong>Route Map</strong>, <strong>Sigil Guide</strong>, and <strong>Battle Feed</strong> visible so you can always tell what happened and what comes next.
                 ${lastSummary}
             `,
             actions: [
@@ -777,7 +796,7 @@ class WildDotCrawler {
             : kind === 'elite'
                 ? act.elite
                 : act.boss;
-        this.state.enemy = cloneEnemy(template);
+        this.state.enemy = cloneEnemy(template, ENEMY_HP_MULTIPLIERS[kind] ?? 1);
         this.state.battleKind = kind;
         this.state.turn = 1;
         this.state.player.battleFirstChainUsed = false;
@@ -785,7 +804,7 @@ class WildDotCrawler {
         const surgeBonus = Math.round(SURGE_MAX * this.state.player.startBattleSurgePct);
         this.state.player.surge = clamp(this.state.player.surge + surgeBonus, 0, SURGE_MAX);
         this.generateBoard();
-        this.addLog(`${template.name} blocks the path. ${this.describeIntent(this.getEnemyIntent())}`);
+        this.addLog(`${template.name} blocks the path. This battle will take a few turns: ${this.describeIntent(this.getEnemyIntent())}`);
         this.audio.trigger('enemy');
         this.renderAll();
     }
@@ -1178,7 +1197,7 @@ class WildDotCrawler {
     updateChainPreview() {
         if (!this.state.selected.length) {
             this.dom.chainTitle.textContent = 'Trace a chain of 3 or more';
-            this.dom.chainPreview.textContent = 'Long chains hit harder, and refills can trigger automatic Wildfalls.';
+            this.dom.chainPreview.textContent = 'One chain resolves your whole turn. Longer chains hit harder, and 5+ refill clusters can trigger automatic Wildfalls.';
             return;
         }
 
@@ -1191,7 +1210,10 @@ class WildDotCrawler {
     previewChain(type, selected) {
         const count = selected.length;
         const wildCount = selected.filter((index) => this.state.board[index] === 'wild').length;
-        const bonusPhrase = count >= 5 ? ' Long chain bonus active.' : '';
+        const bonusPhrase = [
+            count >= 5 ? ' Long chain bonus active.' : '',
+            count > CHAIN_SOFT_CAP ? ` Extra sigils keep helping, but power tapers after ${CHAIN_SOFT_CAP}.` : '',
+        ].join('');
         if (type === 'wild') {
             const gold = count * (4 + this.state.player.wildBonusGold);
             return {
@@ -1222,6 +1244,13 @@ class WildDotCrawler {
             title: `${count} Venom chain`,
             text: `Deal damage now and apply about ${poison} poison.${bonusPhrase}`,
         };
+    }
+
+    getScaledChainSize(count) {
+        if (count <= CHAIN_SOFT_CAP) {
+            return count;
+        }
+        return CHAIN_SOFT_CAP + (count - CHAIN_SOFT_CAP) * CHAIN_OVERFLOW_WEIGHT;
     }
 
     areAdjacent(a, b) {
@@ -1390,7 +1419,8 @@ class WildDotCrawler {
 
     computeDamageValue(count, wildCount, isWildfall) {
         const player = this.state.player;
-        let multiplier = 1 + Math.max(0, count - 3) * 0.14;
+        const scaledCount = this.getScaledChainSize(count);
+        let multiplier = 1 + Math.max(0, scaledCount - 3) * 0.11;
         if (count >= 5) {
             multiplier += player.longChainDamageBonus;
         }
@@ -1401,7 +1431,7 @@ class WildDotCrawler {
             multiplier *= player.wildfallPower;
         }
 
-        let damage = Math.round((count * (player.attack + 1) + wildCount * 2) * multiplier);
+        let damage = Math.round((scaledCount * player.attack + wildCount * 2) * multiplier);
         if (player.weak > 0) {
             damage = Math.round(damage * 0.8);
         }
@@ -1472,7 +1502,12 @@ class WildDotCrawler {
         }
 
         if (type === 'venom') {
-            let damage = Math.round((count * player.venomDamage + wildCount) * (1 + Math.max(0, count - 3) * 0.14) * supportMultiplier);
+            const scaledCount = this.getScaledChainSize(count);
+            let damage = Math.round(
+                (scaledCount * player.venomDamage + wildCount)
+                * (1 + Math.max(0, scaledCount - 3) * 0.11)
+                * supportMultiplier,
+            );
             if (count >= 5) {
                 damage = Math.round(damage * (1 + player.longChainDamageBonus));
             }
@@ -1565,7 +1600,7 @@ class WildDotCrawler {
                 }
             }
 
-            if (cluster.length >= 4) {
+            if (cluster.length >= WILDFALL_TRIGGER_SIZE) {
                 clusters.push({ type: rune, cells: cluster });
             }
         }
@@ -1816,7 +1851,7 @@ class WildDotCrawler {
         this.showOverlay({
             eyebrow: this.state.currentNodeType === 'boss' ? 'Boss down' : 'Victory',
             title,
-            copy: `You collect ${goldReward} gold and choose one boon for the road.`,
+            copy: `You collect ${goldReward} gold and choose one boon for the road. That whole battle counted as a single route node.`,
             choices: boonChoices.map((boon) => ({
                 action: 'choose-boon',
                 value: boon.id,
