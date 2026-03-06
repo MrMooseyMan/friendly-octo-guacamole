@@ -2,167 +2,221 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wild-Dot Crawler</title>
-    <meta name="description" content="Roguelike puzzle RPG - Match runes to attack, heal, and cast spells. Fight through floors, level up, and unleash Wild Surges in this addictive match-3 dungeon crawler!">
-    <meta name="theme-color" content="#0f172a">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Custom CSS -->
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+    <title>Wild-Dot Crawler: Reforged</title>
+    <meta
+        name="description"
+        content="A polished mobile-first rune crawler with branching routes, elite fights, relic-style boons, and tactile drag-chain combat."
+    >
+    <meta name="theme-color" content="#0b1020">
     <link rel="stylesheet" href="style.css">
-
-    <!-- Tone.js for simple audio feedback -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <script
+        defer
+        src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"
+    ></script>
 </head>
-<body class="bg-slate-900 text-gray-200 min-h-screen p-2 overflow-hidden select-none">
+<body data-act="thorn">
+    <div class="page-ambient" aria-hidden="true">
+        <div class="mist mist-one"></div>
+        <div class="mist mist-two"></div>
+        <div class="spark spark-one"></div>
+        <div class="spark spark-two"></div>
+    </div>
 
-    <div id="game-container" class="max-w-md mx-auto flex flex-col h-[98vh]">
-
-        <!-- === FLOOR HEADER === -->
-        <div class="flex justify-between items-center mb-2 px-2 shrink-0">
-            <div id="floor-display" class="text-lg font-fantasy font-bold text-slate-300">Floor 1</div>
-            <div class="flex gap-3 text-sm">
-                <span id="player-gold" class="text-amber-400 font-bold"></span>
-                <span id="player-potions" class="text-emerald-400 font-bold"></span>
+    <main class="game-shell">
+        <header class="topbar panel">
+            <div>
+                <p class="eyebrow">Wild-Dot Crawler</p>
+                <h1>Reforged in the Wilds</h1>
+                <p id="run-subtitle" class="subtle-copy">
+                    Drag through matching sigils to carve a path across the Hollow.
+                </p>
             </div>
-        </div>
-
-        <!-- === ACTIVE PERKS DISPLAY === -->
-        <div id="perks-display" class="px-2 mb-1 flex flex-wrap gap-1 justify-center shrink-0 transition-opacity duration-500" style="display: none;">
-            <!-- Perk tags injected by JS -->
-        </div>
-
-        <!-- === DUNGEON VIEW === -->
-        <div class="p-3 bg-slate-800 rounded-2xl shadow-xl mb-2 border border-slate-700 shrink-0">
-
-            <!-- Enemy -->
-            <div id="enemy-section" class="flex items-center gap-3 mb-3">
-                <div id="enemy-portrait-container" class="portrait-container">
-                    <!-- Enemy SVG goes here -->
-                </div>
-                <div id="enemy-stats" class="flex-1 transition-all duration-300">
-                    <div class="flex justify-between items-end">
-                        <h2 id="enemy-name" class="text-xl font-fantasy font-bold text-rose-400">Gloom-cap</h2>
-                        <p id="enemy-level" class="text-xs text-gray-400">Lvl 1</p>
-                    </div>
-                    <div class="hp-bar-bg h-5 w-full mt-1 relative">
-                        <div id="enemy-hp-bar" class="hp-bar hp-bar-enemy" style="width: 100%;"></div>
-                        <span id="enemy-hp-text" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white shadow-black drop-shadow-md"></span>
-                    </div>
-                    <div id="enemy-status" class="h-5 mt-1 text-xs text-violet-400 flex justify-between items-center">
-                        <span id="enemy-action">Attacks next turn</span>
-                    </div>
-                </div>
+            <div class="topbar-actions">
+                <button id="help-button" class="icon-button" type="button" aria-label="How to play">
+                    ?
+                </button>
+                <button id="mute-button" class="icon-button" type="button" aria-label="Toggle sound">
+                    🔊
+                </button>
+                <button id="new-run-button" class="primary-button compact" type="button">
+                    New Run
+                </button>
             </div>
+        </header>
 
-            <!-- Player -->
-            <div id="player-section" class="flex items-center gap-3">
-                <div id="player-portrait-container" class="portrait-container player-portrait">
-                    <!-- Player SVG goes here -->
+        <section class="overview-strip panel">
+            <div class="overview-stat">
+                <span class="label">Best Run</span>
+                <strong id="meta-best">Act 1</strong>
+            </div>
+            <div class="overview-stat">
+                <span class="label">Victories</span>
+                <strong id="meta-wins">0</strong>
+            </div>
+            <div class="overview-stat">
+                <span class="label">Total Gold</span>
+                <strong id="meta-gold">0</strong>
+            </div>
+            <div class="overview-stat">
+                <span class="label">Runs</span>
+                <strong id="meta-runs">0</strong>
+            </div>
+        </section>
+
+        <section class="status-grid">
+            <article class="panel combat-card" id="player-card">
+                <div class="card-heading">
+                    <div class="portrait-frame player-portrait" id="player-portrait"></div>
+                    <div class="card-copy">
+                        <p class="eyebrow">Warden of the Hollow</p>
+                        <h2>Packleader</h2>
+                        <p class="subtle-copy" id="player-boon-summary">
+                            No boons yet. Hunt the wilds and build a run.
+                        </p>
+                    </div>
                 </div>
-                <div id="player-stats" class="flex-1">
-                    <div class="flex justify-between items-end">
-                        <h2 class="text-lg font-fantasy font-bold text-emerald-400">Warden</h2>
-                        <p id="player-level" class="text-xs text-gray-400">Lvl 1</p>
-                    </div>
-                    <!-- HP -->
-                    <div class="hp-bar-bg h-5 w-full mt-1 relative">
-                        <div id="player-hp-bar" class="hp-bar hp-bar-player" style="width: 100%;"></div>
-                        <span id="player-hp-text-overlay" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow-md">25 / 25</span>
-                    </div>
-                    <div class="flex justify-between text-xs px-1 mt-0.5">
-                        <span id="player-shield-text" class="text-amber-400 font-bold"></span>
-                    </div>
-                    <!-- Special -->
-                    <div class="hp-bar-bg h-3 w-full mt-1">
-                        <div id="player-special-bar" class="hp-bar hp-bar-special" style="width: 0%;"></div>
-                    </div>
-                    <div class="flex justify-between items-center gap-2 mt-1">
-                        <span id="player-special-text" class="text-xs text-sky-400">Wild Surge: 0/10</span>
-                        <div class="flex gap-1">
-                            <button id="shuffle-btn" class="bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow transition-colors">&#x1F504; 5g</button>
-                            <button id="potion-btn" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow transition-colors">&#x1F9EA; HEAL</button>
-                            <button id="surge-btn" class="hidden bg-sky-500 hover:bg-sky-400 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow animate-pulse">&#x26A1; SURGE</button>
+                <div class="resource-row">
+                    <div class="resource-block">
+                        <span>HP</span>
+                        <div class="bar-shell">
+                            <div id="player-hp-bar" class="bar-fill hp-fill"></div>
                         </div>
+                        <strong id="player-hp-text">72 / 72</strong>
+                    </div>
+                    <div class="resource-block">
+                        <span>Guard</span>
+                        <div class="bar-shell">
+                            <div id="player-guard-bar" class="bar-fill guard-fill"></div>
+                        </div>
+                        <strong id="player-guard-text">0</strong>
                     </div>
                 </div>
+                <div class="resource-row compact-row">
+                    <div class="resource-block">
+                        <span>Surge</span>
+                        <div class="bar-shell">
+                            <div id="player-surge-bar" class="bar-fill surge-fill"></div>
+                        </div>
+                        <strong id="player-surge-text">0 / 18</strong>
+                    </div>
+                    <div class="meta-pill-row">
+                        <span class="meta-pill gold-pill" id="player-gold">25 gold</span>
+                        <span class="meta-pill potion-pill" id="player-potions">2 potions</span>
+                    </div>
+                </div>
+                <div class="status-chip-row" id="player-statuses"></div>
+                <div class="boon-chip-row" id="boon-chip-row"></div>
+            </article>
+
+            <article class="panel combat-card enemy-card" id="enemy-card">
+                <div class="card-heading">
+                    <div class="portrait-frame enemy-portrait" id="enemy-portrait"></div>
+                    <div class="card-copy">
+                        <p class="eyebrow" id="enemy-role">Skirmish</p>
+                        <h2 id="enemy-name">The Wilds Stir</h2>
+                        <p class="subtle-copy" id="enemy-flavor">
+                            Choose a route to begin the run.
+                        </p>
+                    </div>
+                </div>
+                <div class="resource-row">
+                    <div class="resource-block">
+                        <span>HP</span>
+                        <div class="bar-shell">
+                            <div id="enemy-hp-bar" class="bar-fill enemy-fill"></div>
+                        </div>
+                        <strong id="enemy-hp-text">0 / 0</strong>
+                    </div>
+                    <div class="resource-block">
+                        <span>Guard</span>
+                        <div class="bar-shell">
+                            <div id="enemy-guard-bar" class="bar-fill guard-fill"></div>
+                        </div>
+                        <strong id="enemy-guard-text">0</strong>
+                    </div>
+                </div>
+                <div class="intent-panel">
+                    <span class="label">Intent</span>
+                    <strong id="enemy-intent">Choose the first path to hunt.</strong>
+                </div>
+                <div class="status-chip-row" id="enemy-statuses"></div>
+            </article>
+        </section>
+
+        <section class="panel route-panel">
+            <div class="route-heading">
+                <div>
+                    <p class="eyebrow" id="act-name">Act I</p>
+                    <h2 id="act-title">Thornwild Verge</h2>
+                </div>
+                <div class="route-meta">
+                    <span class="meta-pill" id="node-progress">Node 0 / 6</span>
+                    <span class="meta-pill" id="threat-level">Threat: low</span>
+                </div>
             </div>
-
-        </div>
-
-        <!-- === GAME STATUS === -->
-        <div class="text-center mb-2 h-8 flex justify-between items-center px-2 shrink-0">
-            <h3 id="turn-status-text" class="text-lg font-bold text-amber-400">Your Turn: 3</h3>
-            <h3 id="combo-text" class="text-lg font-bold text-gray-300 opacity-0 transition-opacity">Combo: <span id="combo-value" class="text-amber-300">x1.0</span></h3>
-        </div>
-
-        <!-- === GAME BOARD === -->
-        <div id="game-board-container" class="flex-grow bg-slate-800 rounded-2xl shadow-xl p-3 border border-slate-700 relative overflow-hidden">
-            <svg id="connector-svg"></svg>
-            <div id="game-board" class="game-board h-full w-full" style="--grid-size: 6;">
-                <!-- Runes will be generated here by JS -->
+            <div id="path-track" class="path-track" aria-live="polite"></div>
+            <div id="next-node-banner" class="next-node-banner">
+                Pick a route to start the run.
             </div>
-            <!-- Floating damage text -->
-            <div id="floating-text-container" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
-        </div>
+        </section>
 
-        <!-- === RUNE LEGEND === -->
-        <div class="mt-2 px-2 flex justify-center gap-3 text-[10px] text-slate-400 shrink-0 flex-wrap">
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-rose-500"></span>ATK</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-500"></span>HEAL</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-sky-500"></span>SURGE</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-500"></span>SHIELD</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-violet-400"></span>POISON</span>
-            <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-slate-100"></span>GOLD</span>
-        </div>
-
-    </div>
-
-    <!-- === VICTORY MODAL === -->
-    <div id="modal" class="modal-backdrop">
-        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-emerald-700">
-            <h2 id="modal-title" class="text-3xl font-fantasy font-bold mb-2 text-emerald-400">Victory!</h2>
-            <p id="modal-text" class="text-lg mb-3 text-slate-300">You defeated the Gloom-cap.</p>
-            <div id="modal-loot" class="mb-4">
-                <!-- Loot rewards appear here -->
+        <section class="panel board-panel">
+            <div class="board-header">
+                <div>
+                    <p class="eyebrow">Rune Board</p>
+                    <h2 id="chain-title">Trace a chain of 3 or more</h2>
+                </div>
+                <div class="board-actions">
+                    <button id="surge-button" class="primary-button" type="button" disabled>
+                        Bestial Surge
+                    </button>
+                    <button id="potion-button" class="secondary-button" type="button">
+                        Drink Potion
+                    </button>
+                    <button id="scout-button" class="secondary-button" type="button">
+                        Scout Board (12g)
+                    </button>
+                </div>
             </div>
-            <button id="modal-button" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
-                Continue Deeper &rarr;
-            </button>
-        </div>
-    </div>
-
-    <!-- === GAME OVER MODAL === -->
-    <div id="gameover-modal" class="modal-backdrop">
-        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full text-center border-2 border-rose-900">
-            <h2 class="text-3xl font-fantasy font-bold mb-2 text-rose-500">&#x2620;&#xFE0F; Defeated</h2>
-            <p id="gameover-text" class="text-md mb-4 text-gray-300">Your journey ends here...</p>
-            <div id="gameover-stats" class="text-left text-sm mb-4 bg-slate-900 rounded-lg p-3 max-h-60 overflow-y-auto">
-                <!-- Stats appear here -->
+            <p id="chain-preview" class="chain-preview">
+                Battles resolve one chain at a time. Long chains hit harder and can trigger Wildfalls.
+            </p>
+            <div class="board-shell">
+                <svg id="connector-svg" aria-hidden="true"></svg>
+                <div id="game-board" class="game-board" aria-label="Rune board"></div>
+                <div id="floating-text-layer" class="floating-text-layer" aria-hidden="true"></div>
             </div>
-            <button id="restart-button" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 px-8 rounded-full transition-all duration-200 text-lg shadow-lg transform hover:scale-105 active:scale-95">
-                &#x1F5E1;&#xFE0F; Try Again
-            </button>
-        </div>
-    </div>
+        </section>
 
-    <!-- === UPGRADE MODAL (Level Up) === -->
-    <div id="upgrade-modal" class="modal-backdrop">
-        <div class="modal-content bg-slate-800 rounded-2xl shadow-xl p-5 max-w-sm w-full text-center border-2 border-amber-500">
-            <h2 class="text-2xl font-fantasy font-bold mb-1 text-amber-400">&#x2B06;&#xFE0F; Level Up!</h2>
-            <p class="text-sm mb-3 text-gray-400">Choose your path:</p>
-            <div id="upgrade-choices" class="space-y-2">
-                <!-- Dynamically generated upgrade buttons -->
+        <section class="panel action-panel">
+            <div>
+                <p class="eyebrow">Current Objective</p>
+                <h2 id="objective-title">Begin a new hunt</h2>
             </div>
-        </div>
-    </div>
+            <p id="objective-copy" class="subtle-copy">
+                Choose between the next route cards when they appear.
+            </p>
+            <div class="legend-grid" id="legend-grid"></div>
+        </section>
 
-    <!-- === ACHIEVEMENT NOTIFICATION === -->
-    <div id="achievement-notification" class="achievement-notif" style="display: none;">
-        <!-- Achievement unlock notifications -->
-    </div>
+        <section class="panel log-panel">
+            <div class="log-heading">
+                <div>
+                    <p class="eyebrow">Battle Log</p>
+                    <h2>What just happened</h2>
+                </div>
+                <span class="meta-pill" id="turn-counter">Turn 1</span>
+            </div>
+            <ul id="log-list" class="log-list"></ul>
+        </section>
+    </main>
 
-    <script src="game.js"></script>
+    <div id="overlay" class="overlay hidden" aria-live="polite"></div>
+
+    <script type="module" src="main.js"></script>
 </body>
 </html>
