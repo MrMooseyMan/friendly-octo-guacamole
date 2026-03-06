@@ -115,6 +115,8 @@ class WildDotCrawler {
         return {
             body: document.body,
             runSubtitle: document.getElementById('run-subtitle'),
+            mapButton: document.getElementById('map-button'),
+            packButton: document.getElementById('pack-button'),
             muteButton: document.getElementById('mute-button'),
             helpButton: document.getElementById('help-button'),
             newRunButton: document.getElementById('new-run-button'),
@@ -163,6 +165,7 @@ class WildDotCrawler {
             legendGrid: document.getElementById('legend-grid'),
             logList: document.getElementById('log-list'),
             turnCounter: document.getElementById('turn-counter'),
+            lastLogLine: document.getElementById('last-log-line'),
             overlay: document.getElementById('overlay'),
         };
     }
@@ -180,6 +183,8 @@ class WildDotCrawler {
         this.dom.surgeButton.addEventListener('click', () => this.useSurge());
         this.dom.potionButton.addEventListener('click', () => this.drinkPotion());
         this.dom.scoutButton.addEventListener('click', () => this.scoutBoard());
+        this.dom.mapButton.addEventListener('click', () => this.showMapOverlay());
+        this.dom.packButton.addEventListener('click', () => this.showPackOverlay());
         this.dom.muteButton.addEventListener('click', () => this.toggleMute());
         this.dom.helpButton.addEventListener('click', () => this.showHelpOverlay());
         this.dom.newRunButton.addEventListener('click', () => this.confirmNewRun());
@@ -338,11 +343,11 @@ class WildDotCrawler {
         this.dom.playerStatuses.innerHTML = playerStatuses.join('');
 
         this.dom.boonChipRow.innerHTML = player.boons
-            .slice(0, 6)
+            .slice(0, 4)
             .map((boonId) => `<span class="boon-chip">${BOON_LOOKUP[boonId].name}</span>`)
             .join('');
         this.dom.playerBoonSummary.textContent = player.boons.length
-            ? `${player.boons.length} boon${player.boons.length === 1 ? '' : 's'} shaping this hunt.`
+            ? `${player.boons.length} boon${player.boons.length === 1 ? '' : 's'} in your pack. Open Pack for full details.`
             : 'No boons yet. Hunt the wilds and build a run.';
     }
 
@@ -403,6 +408,9 @@ class WildDotCrawler {
             <li class="log-item">${entry}</li>
         `).join('');
         this.dom.turnCounter.textContent = `Turn ${this.state.turn}`;
+        if (this.dom.lastLogLine) {
+            this.dom.lastLogLine.textContent = this.state.logs[0] ?? 'A fresh hunt begins.';
+        }
     }
 
     renderObjectives() {
@@ -464,8 +472,85 @@ class WildDotCrawler {
         this.showOverlay({
             eyebrow: 'How it works',
             title: 'One board, one route, one chain at a time',
-            copy: HELP_LINES.map((line) => `• ${line}`).join('<br>'),
+            copy: `${HELP_LINES.map((line) => `• ${line}`).join('<br>')}<br><br>Use <strong>Map</strong> for the overworld route and <strong>Pack</strong> for boons, stats, and your current build.`,
             actions: [{ label: 'Back to the run', action: 'close-overlay', primary: true }],
+        });
+    }
+
+    showMapOverlay() {
+        const pathMarkup = this.dom.pathTrack.outerHTML.replace('id="path-track"', '');
+        const summary = `
+            <div class="summary-grid">
+                <div class="summary-row">
+                    <strong>Act</strong>
+                    <span>${this.currentAct.shortName} — ${this.currentAct.name}</span>
+                </div>
+                <div class="summary-row">
+                    <strong>Progress</strong>
+                    <span>${Math.max(0, this.state.stageIndex + 1)} / ${ACT_PATHS[this.state.actIndex].length} nodes cleared</span>
+                </div>
+                <div class="summary-row">
+                    <strong>Next node</strong>
+                    <span>${this.dom.nextNodeBanner.textContent}</span>
+                </div>
+                <div class="summary-row">
+                    <strong>Lifetime best</strong>
+                    <span>Act ${this.meta.bestAct} • ${this.meta.wins} win${this.meta.wins === 1 ? '' : 's'}</span>
+                </div>
+            </div>
+            <div class="overlay-grid">
+                ${pathMarkup}
+            </div>
+        `;
+
+        this.showOverlay({
+            eyebrow: 'Overworld',
+            title: 'Route Map',
+            copy: summary,
+            actions: [{ label: 'Back to fight', action: 'close-overlay', primary: true }],
+        });
+    }
+
+    showPackOverlay() {
+        const player = this.state.player;
+        const boonMarkup = player.boons.length
+            ? `<div class="overlay-grid">${player.boons.map((boonId, index) => `
+                    <div class="summary-row">
+                        <strong>${index + 1}. ${BOON_LOOKUP[boonId].name}</strong>
+                        <span>${BOON_LOOKUP[boonId].description}</span>
+                    </div>
+                `).join('')}</div>`
+            : `<div class="summary-row"><strong>No items yet</strong><span>Your pack is empty. Win battles, visit shrines, and shop smart.</span></div>`;
+
+        const legendMarkup = LEGEND_COPY.map((entry) => `
+            <div class="legend-card">
+                <strong>${entry.title}</strong>
+                <span>${entry.text}</span>
+            </div>
+        `).join('');
+
+        this.showOverlay({
+            eyebrow: 'Character',
+            title: 'Pack and boons',
+            copy: `
+                <div class="summary-grid">
+                    <div class="summary-row">
+                        <strong>Vitals</strong>
+                        <span>${player.hp}/${player.maxHp} HP • ${player.guard} guard • ${player.surge}/${SURGE_MAX} surge</span>
+                    </div>
+                    <div class="summary-row">
+                        <strong>Supplies</strong>
+                        <span>${player.gold} gold • ${player.potions} potions</span>
+                    </div>
+                    <div class="summary-row">
+                        <strong>Power</strong>
+                        <span>${player.attack} claw • ${player.healPower} bloom • ${player.guardPower} guard • ${player.venomDamage} venom</span>
+                    </div>
+                </div>
+                ${boonMarkup}
+                <div class="legend-grid">${legendMarkup}</div>
+            `,
+            actions: [{ label: 'Back to fight', action: 'close-overlay', primary: true }],
         });
     }
 
@@ -478,7 +563,7 @@ class WildDotCrawler {
             eyebrow: 'Wild-Dot Crawler',
             title: 'A cleaner, sharper crawl through the wilds',
             copy: `
-                Branch through combat, shops, shrines, caches, and campfires. Every battle now runs on one consistent drag-chain system with enemy intent previews and stronger between-node choices.
+                The main screen now stays focused on the boss and the dot board. Route planning lives in <strong>Map</strong>, and your build lives in <strong>Pack</strong>.
                 ${lastSummary}
             `,
             actions: [
@@ -521,7 +606,7 @@ class WildDotCrawler {
             <div class="overlay-card">
                 <p class="eyebrow">${eyebrow}</p>
                 <h2>${title}</h2>
-                <p class="overlay-copy">${copy}</p>
+                <div class="overlay-copy">${copy}</div>
                 ${choiceMarkup}
                 ${actionMarkup}
             </div>

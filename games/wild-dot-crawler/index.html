@@ -9,7 +9,7 @@
     <title>Wild-Dot Crawler: Reforged</title>
     <meta
         name="description"
-        content="A polished mobile-first rune crawler with branching routes, elite fights, relic-style boons, and tactile drag-chain combat."
+        content="A cleaner rune crawler with big-screen boss fights, drag-chain dots combat, and separate map and pack views."
     >
     <meta name="theme-color" content="#0b1020">
     <link rel="stylesheet" href="style.css">
@@ -27,28 +27,169 @@
     </div>
 
     <main class="game-shell">
-        <header class="topbar panel">
-            <div>
+        <header class="panel hud-bar">
+            <div class="hud-copy">
                 <p class="eyebrow">Wild-Dot Crawler</p>
-                <h1>Reforged in the Wilds</h1>
+                <h1 id="act-title">Thornwild Verge</h1>
                 <p id="run-subtitle" class="subtle-copy">
                     Drag through matching sigils to carve a path across the Hollow.
                 </p>
             </div>
+
+            <div class="hud-meta">
+                <span class="meta-pill" id="act-name">Act I</span>
+                <span class="meta-pill" id="node-progress">Node 0 / 6</span>
+                <span class="meta-pill" id="threat-level">Threat: low</span>
+            </div>
+
             <div class="topbar-actions">
+                <button id="map-button" class="secondary-button compact-button" type="button">
+                    Map
+                </button>
+                <button id="pack-button" class="secondary-button compact-button" type="button">
+                    Pack
+                </button>
                 <button id="help-button" class="icon-button" type="button" aria-label="How to play">
                     ?
                 </button>
                 <button id="mute-button" class="icon-button" type="button" aria-label="Toggle sound">
                     🔊
                 </button>
-                <button id="new-run-button" class="primary-button compact" type="button">
-                    New Run
+                <button id="new-run-button" class="primary-button compact-button" type="button">
+                    New
                 </button>
             </div>
         </header>
 
-        <section class="overview-strip panel">
+        <section class="panel enemy-stage enemy-card" id="enemy-card">
+            <div class="enemy-stage-frame">
+                <div class="portrait-frame enemy-portrait giant-portrait" id="enemy-portrait"></div>
+                <div class="enemy-stage-copy">
+                    <p class="eyebrow" id="enemy-role">Skirmish</p>
+                    <h2 id="enemy-name">The Wilds Stir</h2>
+                    <p class="subtle-copy" id="enemy-flavor">
+                        Choose a route to begin the run.
+                    </p>
+                </div>
+            </div>
+
+            <div class="resource-row enemy-resource-row">
+                <div class="resource-block">
+                    <span>HP</span>
+                    <div class="bar-shell">
+                        <div id="enemy-hp-bar" class="bar-fill enemy-fill"></div>
+                    </div>
+                    <strong id="enemy-hp-text">0 / 0</strong>
+                </div>
+                <div class="resource-block">
+                    <span>Guard</span>
+                    <div class="bar-shell">
+                        <div id="enemy-guard-bar" class="bar-fill guard-fill"></div>
+                    </div>
+                    <strong id="enemy-guard-text">0</strong>
+                </div>
+            </div>
+
+            <div class="intent-panel">
+                <span class="label">Intent</span>
+                <strong id="enemy-intent">Choose the first path to hunt.</strong>
+            </div>
+
+            <div class="status-chip-row" id="enemy-statuses"></div>
+        </section>
+
+        <section class="panel board-panel">
+            <div class="board-header">
+                <div>
+                    <p class="eyebrow">Dot Board</p>
+                    <h2 id="chain-title">Trace a chain of 3 or more</h2>
+                </div>
+            </div>
+
+            <p id="chain-preview" class="chain-preview">
+                Long chains hit harder, and refill bursts can trigger Wildfalls.
+            </p>
+
+            <div class="board-shell">
+                <svg id="connector-svg" aria-hidden="true"></svg>
+                <div id="game-board" class="game-board" aria-label="Rune board"></div>
+                <div id="floating-text-layer" class="floating-text-layer" aria-hidden="true"></div>
+            </div>
+        </section>
+
+        <section class="panel player-dock combat-card" id="player-card">
+            <div class="player-dock-head">
+                <div class="portrait-frame player-portrait" id="player-portrait"></div>
+                <div class="card-copy">
+                    <p class="eyebrow">Packleader</p>
+                    <h2>Warden</h2>
+                    <p class="subtle-copy" id="player-boon-summary">
+                        No boons yet. Hunt the wilds and build a run.
+                    </p>
+                </div>
+                <div class="player-supplies">
+                    <span class="meta-pill gold-pill" id="player-gold">25 gold</span>
+                    <span class="meta-pill potion-pill" id="player-potions">2 potions</span>
+                </div>
+            </div>
+
+            <div class="resource-row player-resource-row">
+                <div class="resource-block">
+                    <span>HP</span>
+                    <div class="bar-shell">
+                        <div id="player-hp-bar" class="bar-fill hp-fill"></div>
+                    </div>
+                    <strong id="player-hp-text">72 / 72</strong>
+                </div>
+                <div class="resource-block">
+                    <span>Guard</span>
+                    <div class="bar-shell">
+                        <div id="player-guard-bar" class="bar-fill guard-fill"></div>
+                    </div>
+                    <strong id="player-guard-text">0</strong>
+                </div>
+                <div class="resource-block">
+                    <span>Surge</span>
+                    <div class="bar-shell">
+                        <div id="player-surge-bar" class="bar-fill surge-fill"></div>
+                    </div>
+                    <strong id="player-surge-text">0 / 18</strong>
+                </div>
+            </div>
+
+            <div class="status-chip-row" id="player-statuses"></div>
+            <div class="boon-chip-row" id="boon-chip-row"></div>
+
+            <div class="board-actions player-actions">
+                <button id="surge-button" class="primary-button" type="button" disabled>
+                    Bestial Surge
+                </button>
+                <button id="potion-button" class="secondary-button" type="button">
+                    Drink Potion
+                </button>
+                <button id="scout-button" class="secondary-button" type="button">
+                    Scout Board (12g)
+                </button>
+            </div>
+        </section>
+
+        <section class="panel ticker-panel">
+            <div class="ticker-header">
+                <div>
+                    <p class="eyebrow">Current Objective</p>
+                    <h2 id="objective-title">Begin a new hunt</h2>
+                    <p id="objective-copy" class="subtle-copy">
+                        Choose between the next route cards when they appear.
+                    </p>
+                </div>
+                <span class="meta-pill" id="turn-counter">Turn 1</span>
+            </div>
+            <p id="last-log-line" class="last-log-line">
+                A fresh hunt begins.
+            </p>
+        </section>
+
+        <section class="overview-strip panel hidden-screen">
             <div class="overview-stat">
                 <span class="label">Best Run</span>
                 <strong id="meta-best">Act 1</strong>
@@ -67,150 +208,18 @@
             </div>
         </section>
 
-        <section class="status-grid">
-            <article class="panel combat-card" id="player-card">
-                <div class="card-heading">
-                    <div class="portrait-frame player-portrait" id="player-portrait"></div>
-                    <div class="card-copy">
-                        <p class="eyebrow">Warden of the Hollow</p>
-                        <h2>Packleader</h2>
-                        <p class="subtle-copy" id="player-boon-summary">
-                            No boons yet. Hunt the wilds and build a run.
-                        </p>
-                    </div>
-                </div>
-                <div class="resource-row">
-                    <div class="resource-block">
-                        <span>HP</span>
-                        <div class="bar-shell">
-                            <div id="player-hp-bar" class="bar-fill hp-fill"></div>
-                        </div>
-                        <strong id="player-hp-text">72 / 72</strong>
-                    </div>
-                    <div class="resource-block">
-                        <span>Guard</span>
-                        <div class="bar-shell">
-                            <div id="player-guard-bar" class="bar-fill guard-fill"></div>
-                        </div>
-                        <strong id="player-guard-text">0</strong>
-                    </div>
-                </div>
-                <div class="resource-row compact-row">
-                    <div class="resource-block">
-                        <span>Surge</span>
-                        <div class="bar-shell">
-                            <div id="player-surge-bar" class="bar-fill surge-fill"></div>
-                        </div>
-                        <strong id="player-surge-text">0 / 18</strong>
-                    </div>
-                    <div class="meta-pill-row">
-                        <span class="meta-pill gold-pill" id="player-gold">25 gold</span>
-                        <span class="meta-pill potion-pill" id="player-potions">2 potions</span>
-                    </div>
-                </div>
-                <div class="status-chip-row" id="player-statuses"></div>
-                <div class="boon-chip-row" id="boon-chip-row"></div>
-            </article>
-
-            <article class="panel combat-card enemy-card" id="enemy-card">
-                <div class="card-heading">
-                    <div class="portrait-frame enemy-portrait" id="enemy-portrait"></div>
-                    <div class="card-copy">
-                        <p class="eyebrow" id="enemy-role">Skirmish</p>
-                        <h2 id="enemy-name">The Wilds Stir</h2>
-                        <p class="subtle-copy" id="enemy-flavor">
-                            Choose a route to begin the run.
-                        </p>
-                    </div>
-                </div>
-                <div class="resource-row">
-                    <div class="resource-block">
-                        <span>HP</span>
-                        <div class="bar-shell">
-                            <div id="enemy-hp-bar" class="bar-fill enemy-fill"></div>
-                        </div>
-                        <strong id="enemy-hp-text">0 / 0</strong>
-                    </div>
-                    <div class="resource-block">
-                        <span>Guard</span>
-                        <div class="bar-shell">
-                            <div id="enemy-guard-bar" class="bar-fill guard-fill"></div>
-                        </div>
-                        <strong id="enemy-guard-text">0</strong>
-                    </div>
-                </div>
-                <div class="intent-panel">
-                    <span class="label">Intent</span>
-                    <strong id="enemy-intent">Choose the first path to hunt.</strong>
-                </div>
-                <div class="status-chip-row" id="enemy-statuses"></div>
-            </article>
-        </section>
-
-        <section class="panel route-panel">
-            <div class="route-heading">
-                <div>
-                    <p class="eyebrow" id="act-name">Act I</p>
-                    <h2 id="act-title">Thornwild Verge</h2>
-                </div>
-                <div class="route-meta">
-                    <span class="meta-pill" id="node-progress">Node 0 / 6</span>
-                    <span class="meta-pill" id="threat-level">Threat: low</span>
-                </div>
-            </div>
+        <section class="panel route-panel hidden-screen">
             <div id="path-track" class="path-track" aria-live="polite"></div>
             <div id="next-node-banner" class="next-node-banner">
                 Pick a route to start the run.
             </div>
         </section>
 
-        <section class="panel board-panel">
-            <div class="board-header">
-                <div>
-                    <p class="eyebrow">Rune Board</p>
-                    <h2 id="chain-title">Trace a chain of 3 or more</h2>
-                </div>
-                <div class="board-actions">
-                    <button id="surge-button" class="primary-button" type="button" disabled>
-                        Bestial Surge
-                    </button>
-                    <button id="potion-button" class="secondary-button" type="button">
-                        Drink Potion
-                    </button>
-                    <button id="scout-button" class="secondary-button" type="button">
-                        Scout Board (12g)
-                    </button>
-                </div>
-            </div>
-            <p id="chain-preview" class="chain-preview">
-                Battles resolve one chain at a time. Long chains hit harder and can trigger Wildfalls.
-            </p>
-            <div class="board-shell">
-                <svg id="connector-svg" aria-hidden="true"></svg>
-                <div id="game-board" class="game-board" aria-label="Rune board"></div>
-                <div id="floating-text-layer" class="floating-text-layer" aria-hidden="true"></div>
-            </div>
-        </section>
-
-        <section class="panel action-panel">
-            <div>
-                <p class="eyebrow">Current Objective</p>
-                <h2 id="objective-title">Begin a new hunt</h2>
-            </div>
-            <p id="objective-copy" class="subtle-copy">
-                Choose between the next route cards when they appear.
-            </p>
+        <section class="panel action-panel hidden-screen">
             <div class="legend-grid" id="legend-grid"></div>
         </section>
 
-        <section class="panel log-panel">
-            <div class="log-heading">
-                <div>
-                    <p class="eyebrow">Battle Log</p>
-                    <h2>What just happened</h2>
-                </div>
-                <span class="meta-pill" id="turn-counter">Turn 1</span>
-            </div>
+        <section class="panel log-panel hidden-screen">
             <ul id="log-list" class="log-list"></ul>
         </section>
     </main>
