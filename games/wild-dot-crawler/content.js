@@ -2,6 +2,7 @@ export const GRID_SIZE = 6;
 export const SURGE_MAX = 18;
 export const SCOUT_COST = 12;
 export const MAX_WILDFALLS = 4;
+export const WILDFALL_TRIGGER_SIZE = 5;
 export const LOG_LIMIT = 7;
 
 export const PLAYER_PORTRAIT = `
@@ -491,8 +492,11 @@ export const LEGEND_COPY = [
 export const HELP_LINES = [
     'Drag across adjacent sigils to make a chain of 3 or more of one type. Wild sigils count as any type.',
     'Each battle is one chain per turn. After your chain resolves, the enemy performs its next intent.',
-    'Long chains gain bonus power. Refill bursts of 4 or more matching sigils trigger automatic Wildfalls.',
+    'Each route node is a full encounter or event. Winning a battle clears that node, then the route moves on.',
+    'Long chains gain bonus power, but the biggest bursts are softened so fights last more than one move.',
+    'Refill bursts of 5 or more matching sigils trigger automatic Wildfalls.',
     'Clear acts by surviving six nodes, including an elite or detour if you want bigger rewards.',
+    'Use the Route Map, Sigil Guide, and Battle Feed on the main screen whenever you lose track of what just happened.',
     'Campfires recover you, shrines grant free boons, caches hand out treasure, and shops convert gold into staying power.',
 ];
 
